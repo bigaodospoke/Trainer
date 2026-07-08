@@ -1,0 +1,668 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String             @id @default(cuid())
+  discordId              String?            @unique
+  username               String             @unique
+  displayName            String?
+  email                  String?            @unique
+  emailVerified          DateTime?
+  avatarUrl              String?
+  bannerUrl              String?
+  bio                    String?            @db.VarChar(280)
+  role                   UserRole           @default(USER)
+  isBanned               Boolean            @default(false)
+  favoritePokemonId      String?
+  gamesPlayed            Json?
+  profileThemeColor      String?
+  teamsCount             Int                @default(0)
+  likesReceived          Int                @default(0)
+  downloadsCount         Int                @default(0)
+  followersCount         Int                @default(0)
+  followingCount         Int                @default(0)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  accounts               Account[]
+  activityEvents         ActivityEvent[]
+  comments               Comment[]
+  ownedLeagues           DraftLeague[]
+  draftLeagueTeams       DraftLeagueTeam[]
+  followers              Follow[]           @relation("FollowerRelation")
+  following              Follow[]           @relation("FollowingRelation")
+  friendRequestsReceived Friend[]           @relation("FriendAddressee")
+  friendRequestsSent     Friend[]           @relation("FriendRequester")
+  likes                  Like[]
+  reportsFiled           Report[]           @relation("ReportReporter")
+  savedCalculations      SavedCalculation[]
+  sessions               Session[]
+  teams                  Team[]
+  teamFolders            TeamFolder[]
+  favoritePokemon        PokemonSpecies?    @relation("FavoritePokemon", fields: [favoritePokemonId], references: [id])
+  posts                  UserPost[]
+
+  @@index([username])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PokemonSpecies {
+  id                     String             @id @default(cuid())
+  showdownId             String             @unique
+  nationalDex            Int
+  name                   String
+  slug                   String             @unique
+  generationIntroduced   Int
+  formKind               SpeciesFormKind    @default(BASE)
+  baseSpeciesId          String?
+  prevoId                String?
+  types                  PokemonType[]
+  baseHp                 Int
+  baseAtk                Int
+  baseDef                Int
+  baseSpa                Int
+  baseSpd                Int
+  baseSpe                Int
+  heightM                Float?
+  weightKg               Float?
+  canTerastallize        Boolean            @default(true)
+  spriteUrl              String?
+  spriteShinyUrl         String?
+  spriteAnimatedUrl      String?
+  spriteShinyAnimatedUrl String?
+  iconSheetUrl           String?
+  iconTop                Int?
+  iconLeft               Int?
+  source                 DataSource         @default(POKEAPI)
+  lastSyncedAt           DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  draftPicks             DraftPick[]
+  learnset               LearnsetEntry[]
+  abilities              PokemonAbility[]
+  baseSpecies            PokemonSpecies?    @relation("SpeciesForms", fields: [baseSpeciesId], references: [id])
+  forms                  PokemonSpecies[]   @relation("SpeciesForms")
+  prevo                  PokemonSpecies?    @relation("EvolutionChain", fields: [prevoId], references: [id])
+  evolutions             PokemonSpecies[]   @relation("EvolutionChain")
+  attackerCalcs          SavedCalculation[] @relation("AttackerSpecies")
+  defenderCalcs          SavedCalculation[] @relation("DefenderSpecies")
+  teamSlots              TeamSlot[]
+  tiers                  TierAssignment[]
+  usageStats             UsageStat[]
+  favoritedBy            User[]             @relation("FavoritePokemon")
+
+  @@index([nationalDex])
+  @@index([slug])
+}
+
+model Ability {
+  id                   String           @id @default(cuid())
+  showdownId           String           @unique
+  name                 String
+  slug                 String           @unique
+  description          String
+  generationIntroduced Int
+  source               DataSource       @default(SHOWDOWN)
+  lastSyncedAt         DateTime?
+  species              PokemonAbility[]
+  teamSlots            TeamSlot[]
+
+  @@index([slug])
+}
+
+model PokemonAbility {
+  id        String         @id @default(cuid())
+  speciesId String
+  abilityId String
+  slot      Int
+  isHidden  Boolean        @default(false)
+  ability   Ability        @relation(fields: [abilityId], references: [id], onDelete: Cascade)
+  species   PokemonSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+
+  @@unique([speciesId, abilityId])
+}
+
+model Move {
+  id                   String          @id @default(cuid())
+  showdownId           String          @unique
+  name                 String
+  slug                 String          @unique
+  type                 PokemonType
+  category             MoveCategory
+  power                Int?
+  accuracy             Int?
+  pp                   Int
+  priority             Int             @default(0)
+  description          String
+  generationIntroduced Int
+  source               DataSource      @default(SHOWDOWN)
+  lastSyncedAt         DateTime?
+  learnset             LearnsetEntry[]
+  teamSlotMoves        TeamSlotMove[]
+
+  @@index([slug])
+  @@index([type])
+}
+
+model LearnsetEntry {
+  id             String         @id @default(cuid())
+  speciesId      String
+  moveId         String
+  generation     Int
+  method         LearnMethod
+  levelLearnedAt Int?
+  move           Move           @relation(fields: [moveId], references: [id], onDelete: Cascade)
+  species        PokemonSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+
+  @@unique([speciesId, moveId, generation, method])
+  @@index([speciesId, generation])
+}
+
+model Item {
+  id           String     @id @default(cuid())
+  showdownId   String     @unique
+  name         String
+  slug         String     @unique
+  description  String
+  iconSheetUrl String?
+  iconTop      Int?
+  iconLeft     Int?
+  source       DataSource @default(SHOWDOWN)
+  lastSyncedAt DateTime?
+  teamSlots    TeamSlot[]
+
+  @@index([slug])
+}
+
+model Format {
+  id           String           @id @default(cuid())
+  slug         String           @unique
+  name         String
+  generation   Int
+  gameType     GameType         @default(SINGLES)
+  ruleset      Json
+  isActive     Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  draftLeagues DraftLeague[]
+  teams        Team[]
+  tiers        TierAssignment[]
+  usageStats   UsageStat[]
+}
+
+model TierAssignment {
+  id           String         @id @default(cuid())
+  speciesId    String
+  formatId     String
+  tier         TierLabel
+  usagePercent Float?
+  source       DataSource     @default(SMOGON)
+  syncedAt     DateTime       @default(now())
+  format       Format         @relation(fields: [formatId], references: [id], onDelete: Cascade)
+  species      PokemonSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+
+  @@unique([speciesId, formatId])
+  @@index([formatId, tier])
+}
+
+/// Snapshot mensal dos relatorios "chaos" da Smogon (smogon.com/stats).
+/// Guardamos o JSON cru em `raw` para reprocessar sem precisar baixar de novo.
+model UsageStat {
+  id           String          @id @default(cuid())
+  speciesId    String?
+  formatId     String
+  kind         UsageStatKind   @default(SPECIES)
+  refSlug      String
+  month        DateTime
+  usagePercent Float
+  rank         Int?
+  raw          Json?
+  format       Format          @relation(fields: [formatId], references: [id], onDelete: Cascade)
+  species      PokemonSpecies? @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+
+  @@unique([speciesId, formatId, kind, refSlug, month])
+  @@index([formatId, month])
+}
+
+model TeamFolder {
+  id        String   @id @default(cuid())
+  ownerId   String
+  name      String
+  createdAt DateTime @default(now())
+  teams     Team[]
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model Team {
+  id             String       @id @default(cuid())
+  ownerId        String
+  folderId       String?
+  name           String
+  description    String?
+  battleFormat   BattleFormat @default(SINGLES)
+  generation     Int
+  formatId       String?
+  isPublic       Boolean      @default(false)
+  showdownExport String?
+  likesCount     Int          @default(0)
+  downloadsCount Int          @default(0)
+  commentsCount  Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  comments       Comment[]
+  draftPicks     DraftPick[]
+  likes          Like[]
+  folder         TeamFolder?  @relation(fields: [folderId], references: [id])
+  format         Format?      @relation(fields: [formatId], references: [id])
+  owner          User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  slots          TeamSlot[]
+
+  @@index([ownerId])
+  @@index([isPublic, battleFormat])
+}
+
+model TeamSlot {
+  id         String         @id @default(cuid())
+  teamId     String
+  speciesId  String
+  position   Int
+  nickname   String?
+  gender     String?
+  level      Int            @default(100)
+  shiny      Boolean        @default(false)
+  abilityId  String?
+  itemId     String?
+  natureName String
+  teraType   PokemonType?
+  ivHp       Int            @default(31)
+  ivAtk      Int            @default(31)
+  ivDef      Int            @default(31)
+  ivSpa      Int            @default(31)
+  ivSpd      Int            @default(31)
+  ivSpe      Int            @default(31)
+  evHp       Int            @default(0)
+  evAtk      Int            @default(0)
+  evDef      Int            @default(0)
+  evSpa      Int            @default(0)
+  evSpd      Int            @default(0)
+  evSpe      Int            @default(0)
+  ability    Ability?       @relation(fields: [abilityId], references: [id])
+  item       Item?          @relation(fields: [itemId], references: [id])
+  species    PokemonSpecies @relation(fields: [speciesId], references: [id])
+  team       Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  moves      TeamSlotMove[]
+
+  @@unique([teamId, position])
+  @@index([speciesId])
+}
+
+model TeamSlotMove {
+  id         String   @id @default(cuid())
+  teamSlotId String
+  moveId     String
+  slot       Int
+  move       Move     @relation(fields: [moveId], references: [id])
+  teamSlot   TeamSlot @relation(fields: [teamSlotId], references: [id], onDelete: Cascade)
+
+  @@unique([teamSlotId, slot])
+}
+
+model SavedCalculation {
+  id                String         @id @default(cuid())
+  userId            String
+  attackerSpeciesId String
+  attackerConfig    Json
+  defenderSpeciesId String
+  defenderConfig    Json
+  moveSlug          String
+  fieldConfig       Json?
+  resultSummary     Json
+  createdAt         DateTime       @default(now())
+  attacker          PokemonSpecies @relation("AttackerSpecies", fields: [attackerSpeciesId], references: [id])
+  defender          PokemonSpecies @relation("DefenderSpecies", fields: [defenderSpeciesId], references: [id])
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Friend {
+  id          String       @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  addressee   User         @relation("FriendAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+  requester   User         @relation("FriendRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("FollowerRelation", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("FollowingRelation", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  teamId    String
+  createdAt DateTime @default(now())
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  authorId  String
+  teamId    String
+  parentId  String?
+  content   String    @db.VarChar(1000)
+  isHidden  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("CommentReplies")
+  team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  reports   Report[]
+
+  @@index([teamId])
+}
+
+model ActivityEvent {
+  id        String       @id @default(cuid())
+  userId    String
+  type      ActivityType
+  payload   Json
+  createdAt DateTime     @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model DraftLeague {
+  id        String            @id @default(cuid())
+  ownerId   String
+  formatId  String
+  name      String
+  ruleset   Json
+  status    DraftLeagueStatus @default(SETUP)
+  createdAt DateTime          @default(now())
+  format    Format            @relation(fields: [formatId], references: [id])
+  owner     User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  teams     DraftLeagueTeam[]
+}
+
+model DraftLeagueTeam {
+  id       String      @id @default(cuid())
+  leagueId String
+  ownerId  String
+  name     String
+  league   DraftLeague @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  owner    User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  picks    DraftPick[]
+
+  @@unique([leagueId, ownerId])
+}
+
+model DraftPick {
+  id             String          @id @default(cuid())
+  leagueTeamId   String
+  speciesId      String
+  exportedTeamId String?
+  round          Int
+  pickNumber     Int
+  isBan          Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  exportedTeam   Team?           @relation(fields: [exportedTeamId], references: [id])
+  leagueTeam     DraftLeagueTeam @relation(fields: [leagueTeamId], references: [id], onDelete: Cascade)
+  species        PokemonSpecies  @relation(fields: [speciesId], references: [id])
+
+  @@unique([leagueTeamId, speciesId])
+}
+
+/// Cada execucao dos workers de sync (PokeAPI / Showdown via @pkmn / Smogon
+/// stats) grava uma linha aqui. Usado pelo painel admin para mostrar saude da
+/// sincronizacao e pelo proprio worker para decidir sync incremental vs. full.
+model SyncLog {
+  id               String     @id @default(cuid())
+  source           DataSource
+  status           SyncStatus @default(RUNNING)
+  startedAt        DateTime   @default(now())
+  finishedAt       DateTime?
+  recordsProcessed Int        @default(0)
+  errorMessage     String?
+  triggeredBy      String?
+
+  @@index([source, startedAt])
+}
+
+/// Guarda a "versao" mais recente conhecida de cada fonte externa (ex.: numero
+/// do mes do relatorio Smogon processado, hash do pacote @pkmn/dex, etc.) para
+/// que o sync incremental saiba exatamente a partir de onde continuar.
+model DataVersion {
+  id       String     @id @default(cuid())
+  source   DataSource @unique
+  version  String
+  syncedAt DateTime   @default(now())
+  metadata Json?
+}
+
+model UserPost {
+  id        String   @id @default(cuid())
+  authorId  String
+  content   String   @db.VarChar(2000)
+  imageUrl  String?
+  isHidden  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([authorId, createdAt])
+}
+
+model Report {
+  id         String           @id @default(cuid())
+  reporterId String
+  targetType ReportTargetType
+  targetId   String
+  commentId  String?
+  reason     String           @db.VarChar(500)
+  status     ReportStatus     @default(OPEN)
+  createdAt  DateTime         @default(now())
+  resolvedAt DateTime?
+  comment    Comment?         @relation(fields: [commentId], references: [id])
+  reporter   User             @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum DataSource {
+  POKEAPI
+  SHOWDOWN
+  SMOGON
+  MANUAL
+}
+
+enum PokemonType {
+  NORMAL
+  FIRE
+  WATER
+  ELECTRIC
+  GRASS
+  ICE
+  FIGHTING
+  POISON
+  GROUND
+  FLYING
+  PSYCHIC
+  BUG
+  ROCK
+  GHOST
+  DRAGON
+  DARK
+  STEEL
+  FAIRY
+  STELLAR
+}
+
+enum SpeciesFormKind {
+  BASE
+  REGIONAL
+  MEGA
+  GMAX
+  PARADOX
+  ULTRA_BEAST
+  PRIMAL
+  OTHER_FORM
+}
+
+enum MoveCategory {
+  PHYSICAL
+  SPECIAL
+  STATUS
+}
+
+enum LearnMethod {
+  LEVEL_UP
+  TM
+  EGG
+  TUTOR
+  EVENT
+  VIRTUAL_CONSOLE
+  OTHER
+}
+
+enum GameType {
+  SINGLES
+  DOUBLES
+}
+
+enum TierLabel {
+  AG
+  UBERS
+  OU
+  UUBL
+  UU
+  RUBL
+  RU
+  NUBL
+  NU
+  PUBL
+  PU
+  ZU
+  DOUBLES_OU
+  VGC
+  UNTIERED
+}
+
+enum UsageStatKind {
+  SPECIES
+  MOVE
+  ITEM
+  ABILITY
+  TERA_TYPE
+  TEAMMATE
+}
+
+enum BattleFormat {
+  SINGLES
+  DOUBLES
+  VGC
+  CUSTOM
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+enum ActivityType {
+  TEAM_CREATED
+  TEAM_PUBLISHED
+  TEAM_LIKED
+  USER_FOLLOWED
+  COMMENT_POSTED
+  LEAGUE_JOINED
+}
+
+enum DraftLeagueStatus {
+  SETUP
+  DRAFTING
+  IN_SEASON
+  FINISHED
+}
+
+enum SyncStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+  PARTIAL
+}
+
+enum ReportTargetType {
+  COMMENT
+  TEAM
+  USER
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}

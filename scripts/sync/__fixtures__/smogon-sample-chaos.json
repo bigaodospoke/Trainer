@@ -1,0 +1,39 @@
+{
+  "_fixture_note": "DADOS SINTETICOS para testar o parser offline — NAO sao numeros reais da Smogon. Ver __fixtures__/README.md.",
+  "info": {
+    "metagame": "gen9ou",
+    "cutoff": 1500,
+    "cutoff deviation": 0,
+    "team type": null,
+    "number of battles": 123456
+  },
+  "data": {
+    "Landorus-Therian": {
+      "Raw count": 50000,
+      "usage": 0.45231,
+      "Abilities": { "Intimidate": 0.998, "Sand Force": 0.002 },
+      "Items": { "Choice Scarf": 0.32, "Rocky Helmet": 0.25, "Leftovers": 0.2, "Other": 0.23 },
+      "Moves": { "Earthquake": 0.95, "Stealth Rock": 0.7, "U-turn": 0.6, "Stone Edge": 0.3 },
+      "Teammates": { "Great Tusk": 0.25, "Kingambit": 0.2 },
+      "Tera Type": { "Flying": 0.4, "Ground": 0.3, "Poison": 0.15, "Steel": 0.15 }
+    },
+    "Great Tusk": {
+      "Raw count": 47000,
+      "usage": 0.4102,
+      "Abilities": { "Protosynthesis": 1.0 },
+      "Items": { "Booster Energy": 0.6, "Leftovers": 0.25, "Rocky Helmet": 0.15 },
+      "Moves": { "Headlong Rush": 0.7, "Close Combat": 0.5, "Rapid Spin": 0.6, "Knock Off": 0.4 },
+      "Teammates": { "Landorus-Therian": 0.22 },
+      "Tera Type": { "Fighting": 0.35, "Steel": 0.3, "Ground": 0.2, "Water": 0.15 }
+    },
+    "Iron Valiant": {
+      "Raw count": 30000,
+      "usage": 0.2611,
+      "Abilities": { "Quark Drive": 1.0 },
+      "Items": { "Booster Energy": 0.55, "Choice Specs": 0.2, "Life Orb": 0.25 },
+      "Moves": { "Moonblast": 0.8, "Close Combat": 0.5, "Encore": 0.3, "Shadow Ball": 0.4 },
+      "Teammates": {},
+      "Tera Type": { "Fairy": 0.5, "Fighting": 0.3, "Ghost": 0.2 }
+    }
+  }
+}

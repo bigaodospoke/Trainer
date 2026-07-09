@@ -11,6 +11,7 @@ import { NextResponse } from 'next/server';
  * APIs Node (ex.: CompressionStream) indisponiveis no Edge Runtime.
  */
 export default auth((req) => {
+  console.log('AUTH NO MIDDLEWARE:', req.auth);
   const isLoggedIn = !!req.auth;
   if (!isLoggedIn) {
     const signInUrl = new URL('/signin', req.nextUrl.origin);

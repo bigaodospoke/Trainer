@@ -2,7 +2,7 @@ import type { UserRole } from '@prisma/client';
 import type { DefaultSession } from 'next-auth';
 
 /**
- * Estende o tipo Session do Auth.js com os campos proprios do MetaForge
+ * Estende o tipo Session do Auth.js com os campos proprios do Trainerly
  * (mapeados no callback `session` em src/lib/auth.ts).
  */
 declare module 'next-auth' {

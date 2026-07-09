@@ -48,7 +48,7 @@ export function Sidebar({ username, isAdmin }: SidebarProps) {
   return (
     <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-white/5 bg-void-surface/60 px-3 py-5 lg:flex">
       <Link href="/dashboard" className="mb-8 flex items-center gap-2 px-2">
-      <img src='src/app/img/logo.png' width="22" height="22"></img>
+      <img src="/logo.png" width="200" height="50" alt="Trainerly Logo" />
         {/* <svg width="22" height="22" viewBox="0 0 100 100" aria-hidden="true">
           <path d="M50 6 L94 50 L50 94 L6 50 Z" fill="url(#brand-gradient)" />
           <defs>
@@ -59,7 +59,7 @@ export function Sidebar({ username, isAdmin }: SidebarProps) {
           </defs>
         </svg>
         <span className="font-display text-lg font-semibold tracking-tight text-ink-primary">
-          MetaForge
+          Trainerly
         </span> */}
       </Link>
 

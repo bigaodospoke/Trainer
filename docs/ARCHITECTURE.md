@@ -1,4 +1,4 @@
-# MetaForge — Arquitetura Completa
+# Trainlerly — Arquitetura Completa
 
 > Documento de referência do produto. Cobre a estratégia de dados externos,
 > pipeline de sincronização, cache, schema de banco, estrutura de pastas,
@@ -11,7 +11,7 @@
 
 ## 1. Visão geral
 
-MetaForge unifica em um único produto: Team Builder, Damage Calculator,
+Trainerly unifica em um único produto: Team Builder, Damage Calculator,
 Pokédex competitiva, Meta Analyzer, biblioteca de times, sistema social,
 rankings e (opcionalmente) draft league — com uma identidade visual própria
 ("Tera Crystal": preto-arroxeado profundo, glassmorphism, hexágono facetado

@@ -1,13 +1,13 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * MetaForge Design System
+ * Trainerly Design System
  * -------------------------------------------------------------------------
  * Token source of truth. Estes mesmos valores existem como CSS vars em
  * src/app/globals.css (para uso em gradientes / box-shadow / SVG que o
  * Tailwind nao alcanca). Se mudar aqui, espelhe la.
  *
- * Direcao de design: "Tera Crystal" — a identidade visual do MetaForge gira
+ * Direcao de design: "Tera Crystal" — a identidade visual do Trainerly gira
  * em torno da faceta de cristal (referencia direta a Terastalizacao, a
  * mecanica competitiva atual), usada como motivo de loading, indicador de
  * estado ativo na navegacao e glow ambiente. Nao e um "near-black + 1 accent"

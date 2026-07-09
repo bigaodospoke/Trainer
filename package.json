@@ -1,8 +1,8 @@
 {
-  "name": "metaforge",
+  "name": "Trainerly",
   "version": "0.1.0",
   "private": true,
-  "description": "MetaForge — plataforma competitiva de team building, analise e meta para batalhas Pokemon.",
+  "description": "Trainerly — plataforma competitiva de team building, analise e meta para batalhas Pokemon.",
   "scripts": {
   "dev": "next dev",
   "build": "prisma generate && next build",

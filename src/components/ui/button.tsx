@@ -24,7 +24,7 @@ const sizeClasses: Record<Size, string> = {
   lg: 'h-12 px-6 text-base rounded-xl',
 };
 
-/** Botao base do MetaForge. Variante `primary` carrega o gradiente roxo-neon assinatura. */
+/** Botao base do Trainerly. Variante `primary` carrega o gradiente roxo-neon assinatura. */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', ...props }, ref) => {
     return (

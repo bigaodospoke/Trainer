@@ -68,7 +68,7 @@ export default async function DashboardPage() {
         <h1 className="font-display text-2xl font-semibold text-ink-primary">
           Bem-vindo, {user?.displayName ?? user?.username}
         </h1>
-        <p className="text-sm text-ink-muted">Aqui esta o resumo da sua conta no MetaForge.</p>
+        <p className="text-sm text-ink-muted">Aqui esta o resumo da sua conta no Trainerly.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

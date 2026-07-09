@@ -5,7 +5,7 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 
 /**
- * Autenticacao do MetaForge — Discord OAuth via Auth.js v5.
+ * Autenticacao do Trainerly — Discord OAuth via Auth.js v5.
  *
  * O provider Discord por padrao mapeia o profile para o formato generico
  * {id, name, email, image} do Auth.js. Nosso schema usa nomes de campo

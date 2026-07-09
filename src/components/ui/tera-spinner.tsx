@@ -10,7 +10,7 @@ interface TeraSpinnerProps {
 }
 
 /**
- * Elemento de assinatura visual do MetaForge.
+ * Elemento de assinatura visual do Trainerly.
  *
  * Um hexagono facetado que pulsa faceta-a-faceta, em vez de girar como um
  * spinner generico — referencia direta ao cristal de Terastalizacao (mecanica

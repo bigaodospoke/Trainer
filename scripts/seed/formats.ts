@@ -5,7 +5,7 @@
  * para o produto não vem de uma fonte externa única e estável — o pacote
  * @pkmn/dex inclui centenas de formatos (incluindo formatos "piada" e variantes
  * nicho do servidor do Showdown) que não fazem sentido como filtro de tier no
- * MetaForge. Por isso, a lista de formatos é curada aqui manualmente e
+ * Trainerly. Por isso, a lista de formatos é curada aqui manualmente e
  * versionada como código — é a mesma decisão que um Team Builder real (ex.:
  * Pokémon Showdown) toma ao decidir quais formatos aparecem no dropdown
  * principal vs. "Other Metagames".

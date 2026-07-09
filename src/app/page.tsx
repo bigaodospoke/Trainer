@@ -40,7 +40,7 @@ export default function LandingPage() {
               </linearGradient>
             </defs>
           </svg>
-          <span className="font-display text-lg font-semibold text-ink-primary">MetaForge</span>
+          <span className="font-display text-lg font-semibold text-ink-primary">Trainerly</span>
         </div>
         <Link href="/signin">
           <Button variant="secondary" size="sm">

@@ -26,7 +26,7 @@ function SignInCard() {
           <TeraSpinner size={48} />
         </div>
         <h1 className="mb-2 font-display text-xl font-semibold text-ink-primary">
-          Entrar no MetaForge
+          Entrar no Trainerly
         </h1>
         <p className="mb-6 text-sm text-ink-muted">
           O login e feito exclusivamente via Discord — sem senha para gerenciar.

@@ -16,6 +16,7 @@
  *
  * Execução: npm run db:seed (idempotente — pode rodar de novo sem duplicar)
  */
+/// <reference types="node" />
 import { PrismaClient, Prisma } from '@prisma/client';
 import type { GameType } from '../sync/schema-enums';
 

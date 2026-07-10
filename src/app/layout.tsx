@@ -3,9 +3,12 @@ import { Providers } from '@/components/providers/providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Trainerly — Plataforma competitiva',
+  title: 'Trainerly',
   description:
     'Team Builder, Damage Calculator, Pokedex e analise de meta em um unico lugar, com IA integrada e identidade visual propria.',
+  icons: {
+    icon: '/icon.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

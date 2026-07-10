@@ -2,6 +2,7 @@
 
 import { Search, Bell } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 interface TopbarProps {
   name: string;
@@ -20,6 +21,8 @@ export function Topbar({ name, avatarUrl }: TopbarProps) {
           className="h-9 w-full rounded-pill border border-white/10 bg-void-surface/80 pl-9 pr-3 text-sm text-ink-primary placeholder:text-ink-dim outline-none transition-colors focus:border-purple-neon/50 focus:ring-2 focus:ring-purple-neon/20"
         />
       </div>
+
+      <ThemeToggle />
 
       <button
         className="relative flex h-9 w-9 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-white/5 hover:text-ink-primary"

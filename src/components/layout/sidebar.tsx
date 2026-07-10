@@ -11,7 +11,7 @@ import {
   TrendingUp,
   Library,
   Trophy,
-  Users2,
+  Heart,
   Settings,
   ShieldCheck,
 } from 'lucide-react';
@@ -34,7 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Meta Analyzer', href: '/meta-analyzer', icon: TrendingUp },
   { label: 'Biblioteca de Times', href: '/library', icon: Library },
   { label: 'Rankings', href: '/rankings', icon: Trophy },
-  { label: 'Draft League', href: '/draft-league', icon: Users2 },
+  { label: 'Apoiadores', href: '/apoiadores', icon: Heart },
 ];
 
 interface SidebarProps {

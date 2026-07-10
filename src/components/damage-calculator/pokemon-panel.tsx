@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from 'react';
 import { Combobox } from '@/components/team-builder/combobox';
 import { PokemonIcon, ItemIcon } from '@/components/team-builder/sprite-icon';
+import { TypeBadgeRow } from '@/components/ui/type-badge';
 import {
   SPECIES_OPTIONS,
   ITEM_OPTIONS,
@@ -88,7 +89,7 @@ export function PokemonConfigPanel({ label, value, onChange }: PokemonConfigPane
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h3 className="font-display text-sm font-semibold text-ink-primary">{label}</h3>
-        {types.length > 0 && <span className="text-xs text-ink-dim">{types.join(' / ')}</span>}
+        {types.length > 0 && <TypeBadgeRow types={types} />}
       </div>
 
       <div>
@@ -161,8 +162,8 @@ export function PokemonConfigPanel({ label, value, onChange }: PokemonConfigPane
           defaultValue={value.item}
           placeholder="ex.: Choice Scarf"
           allowEmpty
+          iconKind="item"
           previewSize={36}
-          
           onValueChange={(item) => onChange({ ...value, item })}
         />
       </div>

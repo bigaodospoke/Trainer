@@ -33,7 +33,7 @@ export const config = {
     '/meta-analyzer/:path*',
     '/library/:path*',
     '/rankings/:path*',
-    '/draft-league/:path*',
+    '/apoiadores/:path*',
     '/admin/:path*',
   ],
 };

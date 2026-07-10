@@ -20,22 +20,24 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Tokens ligados a variaveis CSS (ver globals.css :root / .light) para
+        // que o toggle de tema reskine o app inteiro sem tocar em componentes.
         void: {
-          DEFAULT: '#0A0612',
-          surface: '#130B23',
-          elevated: '#1C1130',
-          raised: '#261841',
+          DEFAULT: 'rgb(var(--c-void) / <alpha-value>)',
+          surface: 'rgb(var(--c-void-surface) / <alpha-value>)',
+          elevated: 'rgb(var(--c-void-elevated) / <alpha-value>)',
+          raised: 'rgb(var(--c-void-raised) / <alpha-value>)',
         },
         purple: {
-          deep: '#5B21B6',
-          core: '#8B5CF6',
-          neon: '#B266FF',
-          ice: '#D9C2FF',
+          deep: 'rgb(var(--c-purple-deep) / <alpha-value>)',
+          core: 'rgb(var(--c-purple-core) / <alpha-value>)',
+          neon: 'rgb(var(--c-purple-neon) / <alpha-value>)',
+          ice: 'rgb(var(--c-purple-ice) / <alpha-value>)',
         },
         ink: {
-          primary: '#F5F0FF',
-          muted: '#9B8BB8',
-          dim: '#6B5B85',
+          primary: 'rgb(var(--c-ink-primary) / <alpha-value>)',
+          muted: 'rgb(var(--c-ink-muted) / <alpha-value>)',
+          dim: 'rgb(var(--c-ink-dim) / <alpha-value>)',
         },
         tier: {
           ubers: '#FF4D6D',

@@ -190,8 +190,8 @@ async function SetEditor({
               defaultValue={slot.item?.name ?? ''}
               placeholder="ex.: Choice Scarf"
               allowEmpty
+              iconKind="item"
               previewSize={36}
-              
             />
           </div>
           <div>

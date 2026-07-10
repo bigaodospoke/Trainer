@@ -32,8 +32,6 @@ model User {
   accounts               Account[]
   activityEvents         ActivityEvent[]
   comments               Comment[]
-  ownedLeagues           DraftLeague[]
-  draftLeagueTeams       DraftLeagueTeam[]
   followers              Follow[]           @relation("FollowerRelation")
   following              Follow[]           @relation("FollowingRelation")
   friendRequestsReceived Friend[]           @relation("FriendAddressee")
@@ -46,6 +44,7 @@ model User {
   teamFolders            TeamFolder[]
   favoritePokemon        PokemonSpecies?    @relation("FavoritePokemon", fields: [favoritePokemonId], references: [id])
   posts                  UserPost[]
+  supporter              Supporter?
 
   @@index([username])
 }
@@ -115,7 +114,6 @@ model PokemonSpecies {
   lastSyncedAt           DateTime?
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
-  draftPicks             DraftPick[]
   learnset               LearnsetEntry[]
   abilities              PokemonAbility[]
   baseSpecies            PokemonSpecies?    @relation("SpeciesForms", fields: [baseSpeciesId], references: [id])
@@ -222,7 +220,6 @@ model Format {
   isActive     Boolean          @default(true)
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
-  draftLeagues DraftLeague[]
   teams        Team[]
   tiers        TierAssignment[]
   usageStats   UsageStat[]
@@ -290,7 +287,6 @@ model Team {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   comments       Comment[]
-  draftPicks     DraftPick[]
   likes          Like[]
   folder         TeamFolder?  @relation(fields: [folderId], references: [id])
   format         Format?      @relation(fields: [formatId], references: [id])
@@ -426,47 +422,6 @@ model ActivityEvent {
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
-}
-
-model DraftLeague {
-  id        String            @id @default(cuid())
-  ownerId   String
-  formatId  String
-  name      String
-  ruleset   Json
-  status    DraftLeagueStatus @default(SETUP)
-  createdAt DateTime          @default(now())
-  format    Format            @relation(fields: [formatId], references: [id])
-  owner     User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  teams     DraftLeagueTeam[]
-}
-
-model DraftLeagueTeam {
-  id       String      @id @default(cuid())
-  leagueId String
-  ownerId  String
-  name     String
-  league   DraftLeague @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  owner    User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  picks    DraftPick[]
-
-  @@unique([leagueId, ownerId])
-}
-
-model DraftPick {
-  id             String          @id @default(cuid())
-  leagueTeamId   String
-  speciesId      String
-  exportedTeamId String?
-  round          Int
-  pickNumber     Int
-  isBan          Boolean         @default(false)
-  createdAt      DateTime        @default(now())
-  exportedTeam   Team?           @relation(fields: [exportedTeamId], references: [id])
-  leagueTeam     DraftLeagueTeam @relation(fields: [leagueTeamId], references: [id], onDelete: Cascade)
-  species        PokemonSpecies  @relation(fields: [speciesId], references: [id])
-
-  @@unique([leagueTeamId, speciesId])
 }
 
 /// Cada execucao dos workers de sync (PokeAPI / Showdown via @pkmn / Smogon
@@ -640,13 +595,6 @@ enum ActivityType {
   LEAGUE_JOINED
 }
 
-enum DraftLeagueStatus {
-  SETUP
-  DRAFTING
-  IN_SEASON
-  FINISHED
-}
-
 enum SyncStatus {
   RUNNING
   SUCCESS
@@ -665,4 +613,44 @@ enum ReportStatus {
   REVIEWING
   RESOLVED
   DISMISSED
+}
+
+enum SupporterTier {
+  BRONZE
+  SILVER
+  GOLD
+  DIAMOND
+}
+
+/// MANUAL cobre apoiadores cadastrados a mao (ex.: apoio direto, parceria)
+/// antes de qualquer integracao de pagamento estar ligada.
+enum SupporterPlatform {
+  MANUAL
+  PIX
+  APOIA_SE
+  KOFI
+  PATREON
+}
+
+/// Pagina "Apoiadores". Estrutura pronta para integracao futura com Pix,
+/// Apoia.se, Ko-fi e Patreon (campos platform/externalId/totalAmountCents),
+/// mas funciona hoje com cadastro manual (platform = MANUAL).
+model Supporter {
+  id               String            @id @default(cuid())
+  userId           String?           @unique
+  name             String
+  role             String?
+  photoUrl         String?
+  tier             SupporterTier     @default(BRONZE)
+  platform         SupporterPlatform @default(MANUAL)
+  externalId       String?
+  totalAmountCents Int               @default(0)
+  currency         String            @default("BRL")
+  isActive         Boolean           @default(true)
+  since            DateTime          @default(now())
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  user             User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tier, totalAmountCents])
 }

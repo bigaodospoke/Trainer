@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { PokemonIcon } from '@/components/team-builder/sprite-icon';
+import { PokemonIcon, ItemIcon } from '@/components/team-builder/sprite-icon';
 
 export interface ComboboxOption {
   value: string;
@@ -18,6 +18,14 @@ interface ComboboxProps {
   required?: boolean;
   autoFocus?: boolean;
   previewSize?: number;
+  /**
+   * "pokemon" usa a grade 40x30 de pokemonicons-sheet.png; "item" usa a
+   * grade 24x24 de itemicons-sheet.png. Escolher o errado aqui distorce o
+   * recorte do sprite sheet (era a causa do bug de sprites de item
+   * "desalinhados/esticados" — o combobox de item usava sempre o icone de
+   * Pokemon por engano).
+   */
+  iconKind?: 'pokemon' | 'item';
   /** Para uso controlado fora de um <form> (ex.: Damage Calculator), chamado
    *  a cada mudanca de texto e quando uma opcao e selecionada. */
   onValueChange?: (value: string) => void;
@@ -43,9 +51,12 @@ export function Combobox({
   allowEmpty = false,
   required = false,
   autoFocus = false,
-  previewSize = 40,
+  previewSize,
+  iconKind = 'pokemon',
   onValueChange,
 }: ComboboxProps) {
+  const resolvedPreviewSize = previewSize ?? (iconKind === 'item' ? 32 : 40);
+  const Icon = iconKind === 'item' ? ItemIcon : PokemonIcon;
   const [text, setText] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(0);
@@ -101,9 +112,9 @@ export function Combobox({
     <div className="flex items-center gap-2.5">
       <div
         className="flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-white/5"
-        style={{ width: previewSize, height: previewSize }}
+        style={{ width: resolvedPreviewSize, height: resolvedPreviewSize }}
       >
-        {matched ? <PokemonIcon icon={matched.icon} alt={matched.value} /> : null}
+        {matched ? <Icon icon={matched.icon} alt={matched.value} /> : null}
       </div>
 
       <div ref={containerRef} className="relative flex-1">
@@ -157,7 +168,7 @@ export function Combobox({
                   )}
                   onMouseEnter={() => setHighlighted(i)}
                 >
-                  <PokemonIcon icon={option.icon} alt={option.value} />
+                  <Icon icon={option.icon} alt={option.value} />
                   <span className="truncate">{option.value}</span>
                 </button>
               </li>

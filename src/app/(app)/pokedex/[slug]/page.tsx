@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getSpeciesDetail, getCommonTeammates } from '@/lib/pokedex/queries';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Badge } from '@/components/ui/badge';
+import { TypeBadge } from '@/components/ui/type-badge';
 import { StatBar } from '@/components/ui/stat-bar';
 import { PokemonIcon } from '@/components/team-builder/sprite-icon';
 import { DexSprite } from '@/components/pokedex/dex-sprite';
@@ -64,9 +65,7 @@ export default async function PokedexDetailPage({ params }: PokedexDetailPagePro
             </div>
             <div className="mb-3 flex flex-wrap gap-1.5">
               {species.types.map((t: string) => (
-                <Badge key={t} tone="neutral">
-                  {t}
-                </Badge>
+                <TypeBadge key={t} type={t} />
               ))}
               {species.tiers.map((ta: (typeof species.tiers)[number]) => (
                 <Badge key={ta.formatId} tone="purple">
@@ -141,9 +140,6 @@ export default async function PokedexDetailPage({ params }: PokedexDetailPagePro
       {t.name} · {t.usagePercent.toFixed(1)}%
     </Link>
   ))}
-                    
-                  ) : null
-                )
               </div>
             </>
           )}

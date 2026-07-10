@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getAllSpeciesOptions } from '@/lib/team-builder/queries';
 import { ProfileForm } from './profile-form';
+import { AppearanceForm } from './appearance-form';
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -19,6 +20,7 @@ export default async function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-display text-2xl font-semibold text-ink-primary">Configurações do perfil</h1>
+      <AppearanceForm />
       <ProfileForm
         username={user!.username}
         displayName={user?.displayName ?? user!.username}

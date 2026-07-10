@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { TypeBadgeRow } from '@/components/ui/type-badge';
 
 interface SpeciesPreviewProps {
   name: string;
@@ -27,7 +28,7 @@ export function SpeciesPreview({ name, types, normalSpriteUrl, shinySpriteUrl, d
       </div>
       <div>
         <h1 className="font-display text-xl font-semibold text-ink-primary">{name}</h1>
-        <p className="text-xs text-ink-dim">{types.join(' / ')}</p>
+        <TypeBadgeRow types={types} />
       </div>
       <label className="ml-auto flex items-center gap-2 text-sm text-ink-muted">
         <input

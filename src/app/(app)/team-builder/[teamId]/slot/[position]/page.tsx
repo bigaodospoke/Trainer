@@ -14,6 +14,8 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { EvInputs } from '@/components/team-builder/ev-inputs';
+import { IvInputs } from '@/components/team-builder/iv-inputs';
+import { SearchableSelect } from '@/components/team-builder/searchable-select';
 import { Combobox } from '@/components/team-builder/combobox';
 import { PokemonIcon, ItemIcon } from '@/components/team-builder/sprite-icon';
 import { SpeciesPreview } from '@/components/team-builder/species-preview';
@@ -131,6 +133,7 @@ async function SetEditor({
           normalSpriteUrl={species.spriteAnimatedUrl ?? ''}
           shinySpriteUrl={species.spriteShinyAnimatedUrl ?? ''}
           defaultShiny={slot.shiny}
+          nationalDex={species.nationalDex}
         />
         <Link
           href={`/team-builder/${teamId}/slot/${position}?change=1`}
@@ -172,15 +175,17 @@ async function SetEditor({
             <label htmlFor="abilityId" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-dim">
               Ability
             </label>
-            <Select id="abilityId" name="abilityId" defaultValue={slot.abilityId ?? ''}>
-              <option value="">—</option>
-              {species.abilities.map((pa: (typeof species.abilities)[number]) => (
-                <option key={pa.abilityId} value={pa.abilityId}>
-                  {pa.ability.name}
-                  {pa.isHidden ? ' (Hidden)' : ''}
-                </option>
-              ))}
-            </Select>
+            <SearchableSelect
+              name="abilityId"
+              defaultValue={slot.abilityId ?? ''}
+              allowEmpty
+              placeholder="Escolher ability..."
+              options={species.abilities.map((pa: (typeof species.abilities)[number]) => ({
+                value: pa.abilityId,
+                label: pa.ability.name,
+                hint: pa.isHidden ? 'Hidden' : undefined,
+              }))}
+            />
           </div>
           <div className="col-span-2">
             <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-dim">Item</label>
@@ -198,13 +203,12 @@ async function SetEditor({
             <label htmlFor="natureName" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-dim">
               Nature
             </label>
-            <Select id="natureName" name="natureName" defaultValue={slot.natureName}>
-              {NATURES.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </Select>
+            <SearchableSelect
+              name="natureName"
+              defaultValue={slot.natureName}
+              placeholder="Escolher nature..."
+              options={NATURES.map((n) => ({ value: n, label: n }))}
+            />
           </div>
         </div>
 
@@ -212,41 +216,22 @@ async function SetEditor({
           <label htmlFor="teraType" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-dim">
             Tera Type
           </label>
-          <Select id="teraType" name="teraType" defaultValue={slot.teraType ?? ''}>
-            <option value="">—</option>
-            {TERA_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </Select>
+          <SearchableSelect
+            name="teraType"
+            defaultValue={slot.teraType ?? ''}
+            allowEmpty
+            placeholder="Escolher tera type..."
+            options={TERA_TYPES.map((t) => ({ value: t, label: t }))}
+          />
         </div>
 
         <EvInputs
           defaults={{ hp: slot.evHp, atk: slot.evAtk, def: slot.evDef, spa: slot.evSpa, spd: slot.evSpd, spe: slot.evSpe }}
         />
 
-        <div>
-          <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-ink-dim">IVs</label>
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-            {(['Hp', 'Atk', 'Def', 'Spa', 'Spd', 'Spe'] as const).map((stat) => (
-              <div key={stat}>
-                <label htmlFor={`iv${stat}`} className="mb-1 block text-[10px] text-ink-dim">
-                  {stat}
-                </label>
-                <input
-                  id={`iv${stat}`}
-                  name={`iv${stat}`}
-                  type="number"
-                  min={0}
-                  max={31}
-                  defaultValue={slot[`iv${stat}` as 'ivHp']}
-                  className="h-9 w-full rounded-lg border border-white/10 bg-void-surface/80 px-2 text-center text-sm text-ink-primary outline-none focus:border-purple-neon/50 focus:ring-2 focus:ring-purple-neon/20"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <IvInputs
+          defaults={{ hp: slot.ivHp, atk: slot.ivAtk, def: slot.ivDef, spa: slot.ivSpa, spd: slot.ivSpd, spe: slot.ivSpe }}
+        />
 
         <div>
           <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-ink-dim">Golpes</label>

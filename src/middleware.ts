@@ -34,6 +34,7 @@ export const config = {
     '/library/:path*',
     '/rankings/:path*',
     '/apoiadores/:path*',
+    '/favoritos/:path*',
     '/admin/:path*',
   ],
 };

@@ -5,3 +5,5 @@ out/
 .env.local
 dist/
 build/
+.vercel
+.env*

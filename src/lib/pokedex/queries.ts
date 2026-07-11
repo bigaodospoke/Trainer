@@ -57,7 +57,20 @@ export async function getSpeciesDetail(slug: string) {
       abilities: { include: { ability: true }, orderBy: { slot: 'asc' } },
       tiers: { include: { format: true } },
       prevo: { select: { slug: true, name: true, iconSheetUrl: true, iconTop: true, iconLeft: true } },
-      evolutions: { select: { slug: true, name: true, iconSheetUrl: true, iconTop: true, iconLeft: true } },
+      evolutions: {
+        select: {
+          slug: true,
+          name: true,
+          iconSheetUrl: true,
+          iconTop: true,
+          iconLeft: true,
+          evoType: true,
+          evoLevel: true,
+          evoItem: true,
+          evoMove: true,
+          evoCondition: true,
+        },
+      },
       learnset: {
         include: { move: true },
         orderBy: [{ method: 'asc' }, { levelLearnedAt: 'asc' }],

@@ -8,6 +8,9 @@ import { TypeBadge } from '@/components/ui/type-badge';
 import { StatBar } from '@/components/ui/stat-bar';
 import { PokemonIcon } from '@/components/team-builder/sprite-icon';
 import { DexSprite } from '@/components/pokedex/dex-sprite';
+import { FavoriteButton } from '@/components/ui/favorite-button';
+import { isFavorited } from '@/lib/favorites/actions';
+import { formatEvoCondition } from '@/lib/pokedex/evo-condition';
 
 interface PokedexDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -30,6 +33,7 @@ export default async function PokedexDetailPage({ params }: PokedexDetailPagePro
   if (!species) notFound();
 
   const teammates = await getCommonTeammates(species.id);
+  const favorited = await isFavorited('POKEMON', species.id);
 
   // Agrupa learnset por metodo, deduplicando por golpe (mantendo a entrada
   // de geracao mais recente — relevante pro nivel exibido em LEVEL_UP).
@@ -56,12 +60,14 @@ export default async function PokedexDetailPage({ params }: PokedexDetailPagePro
             name={species.name}
             normalUrl={species.spriteAnimatedUrl ?? ''}
             shinyUrl={species.spriteShinyAnimatedUrl ?? ''}
+            nationalDex={species.nationalDex}
           />
 
           <div className="flex-1">
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <h1 className="font-display text-2xl font-semibold text-ink-primary">{species.name}</h1>
               <span className="font-mono text-sm text-ink-dim">#{String(species.nationalDex).padStart(4, '0')}</span>
+              <FavoriteButton targetType="POKEMON" targetId={species.id} initialFavorited={favorited} size="sm" />
             </div>
             <div className="mb-3 flex flex-wrap gap-1.5">
               {species.types.map((t: string) => (
@@ -83,13 +89,13 @@ export default async function PokedexDetailPage({ params }: PokedexDetailPagePro
                 {species.prevo && (
                   <>
                     <EvoChip slug={species.prevo.slug} name={species.prevo.name} icon={species.prevo} />
-                    <span className="text-ink-dim">→</span>
+                    <EvoArrow condition={formatEvoCondition(species)} />
                   </>
                 )}
                 <EvoChip slug={species.slug} name={species.name} icon={species} current />
                 {species.evolutions.map((evo: (typeof species.evolutions)[number]) => (
                   <span key={evo.slug} className="flex items-center gap-2">
-                    <span className="text-ink-dim">→</span>
+                    <EvoArrow condition={formatEvoCondition(evo)} />
                     <EvoChip slug={evo.slug} name={evo.name} icon={evo} />
                   </span>
                 ))}
@@ -176,6 +182,15 @@ export default async function PokedexDetailPage({ params }: PokedexDetailPagePro
         </div>
       </GlassCard>
     </div>
+  );
+}
+
+function EvoArrow({ condition }: { condition: string | null }) {
+  return (
+    <span className="flex flex-col items-center px-0.5">
+      <span className="text-ink-dim">→</span>
+      {condition && <span className="whitespace-nowrap text-[9px] leading-tight text-ink-dim">{condition}</span>}
+    </span>
   );
 }
 

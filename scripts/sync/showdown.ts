@@ -62,6 +62,11 @@ interface ExtractedSpecies {
   abilities: { slot: number; isHidden: boolean; abilityShowdownId: string }[];
   tier: TierLabel | null;
   doublesIsOU: boolean;
+  evoType: string | null;
+  evoLevel: number | null;
+  evoItem: string | null;
+  evoMove: string | null;
+  evoCondition: string | null;
 }
 
 interface ExtractedMove {
@@ -241,6 +246,11 @@ function buildSpeciesRecord(species: Specie): ExtractedSpecies {
     // Tiers mais granulares de doubles (DUU, DNU...) ficam para uma fase
     // futura, quando adicionarmos esses valores ao enum TierLabel.
     doublesIsOU: species.doublesTier === 'DOU' || species.doublesTier === 'DUber',
+    evoType: species.evoType ?? null,
+    evoLevel: species.evoLevel ?? null,
+    evoItem: species.evoItem ?? null,
+    evoMove: species.evoMove ?? null,
+    evoCondition: species.evoCondition ?? null,
   };
 }
 
@@ -467,6 +477,11 @@ async function writeToDatabase(
             iconSheetUrl: species.iconSheetUrl,
             iconTop: species.iconTop,
             iconLeft: species.iconLeft,
+            evoType: species.evoType,
+            evoLevel: species.evoLevel,
+            evoItem: species.evoItem,
+            evoMove: species.evoMove,
+            evoCondition: species.evoCondition,
             source: 'SHOWDOWN',
             lastSyncedAt: new Date(),
           },
@@ -489,6 +504,11 @@ async function writeToDatabase(
             iconSheetUrl: species.iconSheetUrl,
             iconTop: species.iconTop,
             iconLeft: species.iconLeft,
+            evoType: species.evoType,
+            evoLevel: species.evoLevel,
+            evoItem: species.evoItem,
+            evoMove: species.evoMove,
+            evoCondition: species.evoCondition,
             lastSyncedAt: new Date(),
           },
         }),

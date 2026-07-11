@@ -12,6 +12,7 @@ import {
   Library,
   Trophy,
   Heart,
+  Star,
   Settings,
   ShieldCheck,
 } from 'lucide-react';
@@ -93,6 +94,13 @@ export function Sidebar({ username, isAdmin }: SidebarProps) {
       </nav>
 
       <div className="mt-2 flex flex-col gap-1 border-t border-white/5 pt-3">
+        <Link
+          href="/favoritos"
+          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition-colors hover:text-ink-primary"
+        >
+          <Star className="h-[18px] w-[18px]" strokeWidth={1.75} />
+          Meus Favoritos
+        </Link>
         <Link
           href="/settings"
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition-colors hover:text-ink-primary"

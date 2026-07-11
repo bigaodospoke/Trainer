@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { TypeBadgeRow } from '@/components/ui/type-badge';
 import { ValidationBanner } from '@/components/team-builder/validation-banner';
 import { computeTeamIssues } from '@/lib/team-builder/validation';
 import { buildExportTeamText, type ExportableSlot } from '@/lib/team-builder/showdown-format';
@@ -101,7 +102,8 @@ export default async function TeamEditorPage({ params }: TeamEditorPageProps) {
                   <>
                     <Image src={slot.species.spriteAnimatedUrl ?? slot.species.spriteUrl ?? ''} alt={slot.species.name} width={56} height={56} unoptimized />
                     <p className="text-xs font-medium text-ink-primary">{slot.nickname || slot.species.name}</p>
-                    <p className="text-[10px] text-ink-dim">{slot.moves.length}/4 golpes</p>
+                    <TypeBadgeRow types={slot.species.types} size="sm" />
+                    <p className="text-[10px] text-ink-dim">Lv.{slot.level} · {slot.moves.length}/4 golpes</p>
                   </>
                 ) : (
                   <>

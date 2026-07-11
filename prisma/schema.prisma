@@ -44,6 +44,7 @@ model User {
   teamFolders            TeamFolder[]
   favoritePokemon        PokemonSpecies?    @relation("FavoritePokemon", fields: [favoritePokemonId], references: [id])
   posts                  UserPost[]
+  favorites              Favorite[]
   supporter              Supporter?
 
   @@index([username])
@@ -103,6 +104,15 @@ model PokemonSpecies {
   heightM                Float?
   weightKg               Float?
   canTerastallize        Boolean            @default(true)
+  /// Condicao para evoluir DESTE prevo PARA esta especie — ex.: "levelMove"
+  /// + evoLevel=16 (Charmeleon), "useItem" + evoItem="Water Stone", etc.
+  /// Populado por scripts/sync/showdown.ts a partir do dataset do @pkmn/dex
+  /// (mesma fonte que ja alimenta o resto do sync, sem chamada de rede extra).
+  evoType                String?
+  evoLevel               Int?
+  evoItem                String?
+  evoMove                String?
+  evoCondition           String?
   spriteUrl              String?
   spriteShinyUrl         String?
   spriteAnimatedUrl      String?
@@ -635,6 +645,26 @@ enum SupporterPlatform {
 /// Pagina "Apoiadores". Estrutura pronta para integracao futura com Pix,
 /// Apoia.se, Ko-fi e Patreon (campos platform/externalId/totalAmountCents),
 /// mas funciona hoje com cadastro manual (platform = MANUAL).
+/// Alvo generico de favorito — Pokemon (por speciesId), Time (por teamId) ou
+/// Estrategia (por um id de texto livre, ex.: post/analise da biblioteca).
+enum FavoriteTargetType {
+  POKEMON
+  TEAM
+  STRATEGY
+}
+
+model Favorite {
+  id         String             @id @default(cuid())
+  userId     String
+  targetType FavoriteTargetType
+  targetId   String
+  createdAt  DateTime           @default(now())
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetType, targetId])
+  @@index([userId, targetType])
+}
+
 model Supporter {
   id               String            @id @default(cuid())
   userId           String?           @unique

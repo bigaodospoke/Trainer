@@ -1,6 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowLeft, Heart, MessageCircle } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { getPublicTeamDetail, hasUserLiked } from '@/lib/library/queries';
@@ -11,6 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
 import { toggleLike, postComment } from '../actions';
 import { CopyExportButton } from './copy-export-button';
+import { TeamSlotCard } from '@/components/team-builder/team-slot-card';
+import { FavoriteButton } from '@/components/ui/favorite-button';
+import { isFavorited } from '@/lib/favorites/actions';
 
 interface LibraryDetailPageProps {
   params: Promise<{ teamId: string }>;
@@ -25,6 +27,7 @@ export default async function LibraryDetailPage({ params }: LibraryDetailPagePro
   if (!team.isPublic && team.ownerId !== session!.user.id) redirect('/library');
 
   const liked = await hasUserLiked(session!.user.id, teamId);
+  const favorited = await isFavorited('TEAM', teamId);
 
   const exportableSlots: ExportableSlot[] = team.slots.map((slot: (typeof team.slots)[number]) => ({
     speciesName: slot.species.name,
@@ -54,6 +57,7 @@ export default async function LibraryDetailPage({ params }: LibraryDetailPagePro
           <div>
             <div className="mb-1 flex items-center gap-2">
               <h1 className="font-display text-2xl font-semibold text-ink-primary">{team.name}</h1>
+              <FavoriteButton targetType="TEAM" targetId={team.id} initialFavorited={favorited} revalidate={`/library/${team.id}`} size="sm" />
               <Badge tone="purple">Gen {team.generation}</Badge>
               <Badge tone="neutral">{team.battleFormat}</Badge>
               {team.format && <Badge tone="neutral">{team.format.name}</Badge>}
@@ -77,20 +81,9 @@ export default async function LibraryDetailPage({ params }: LibraryDetailPagePro
         </div>
       </GlassCard>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {team.slots.map((slot: (typeof team.slots)[number]) => (
-          <GlassCard key={slot.id} padding="sm" className="flex flex-col items-center gap-2 text-center">
-            <Image src={slot.species.spriteAnimatedUrl ?? ''} alt={slot.species.name} width={56} height={56} unoptimized />
-            <p className="text-xs font-medium text-ink-primary">{slot.nickname || slot.species.name}</p>
-            {slot.item && <p className="text-[10px] text-ink-dim">@ {slot.item.name}</p>}
-            <div className="flex flex-wrap justify-center gap-1">
-              {slot.moves.map((m: (typeof slot.moves)[number]) => (
-                <span key={m.id} className="rounded-pill bg-white/5 px-1.5 py-0.5 text-[10px] text-ink-muted">
-                  {m.move.name}
-                </span>
-              ))}
-            </div>
-          </GlassCard>
+          <TeamSlotCard key={slot.id} slot={slot} />
         ))}
       </div>
 

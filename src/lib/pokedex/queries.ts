@@ -14,16 +14,22 @@ export interface PokedexFilters {
   type?: string;
   generation?: number;
   page?: number;
+  /** Formas especiais a incluir alem de BASE (Mega, Gmax, Regional...) — ver
+   *  FORM_KIND_META em @/lib/pokedex/form-kinds. BASE sempre entra, entao a
+   *  Pokedex nunca fica vazia so por causa desse filtro. */
+  formKinds?: string[];
 }
 
 export async function searchSpecies(filters: PokedexFilters) {
   const page = filters.page && filters.page > 0 ? filters.page : 1;
+  const formKindsIn = Array.from(new Set(['BASE', ...(filters.formKinds ?? [])]));
 
   const where = {
     AND: [
       filters.q ? { name: { contains: filters.q, mode: 'insensitive' as const } } : {},
       filters.type ? { types: { has: filters.type as never } } : {},
       filters.generation ? { generationIntroduced: filters.generation } : {},
+      { formKind: { in: formKindsIn as never[] } },
     ],
   };
 
@@ -38,6 +44,7 @@ export async function searchSpecies(filters: PokedexFilters) {
         name: true,
         nationalDex: true,
         types: true,
+        formKind: true,
         iconSheetUrl: true,
         iconTop: true,
         iconLeft: true,

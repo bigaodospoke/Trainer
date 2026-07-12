@@ -66,7 +66,11 @@ export async function deleteTeam(teamId: string) {
   redirect('/team-builder');
 }
 
-export async function togglePublic(teamId: string, isPublic: boolean) {
+/** PUBLIC mantem isPublic=true em sincronia (todas as queries existentes que
+ *  filtram por isPublic continuam corretas); FRIENDS e PRIVATE mantem
+ *  isPublic=false — FRIENDS so libera acesso extra explicitamente checado
+ *  em library/[teamId] e no compartilhamento via chat. */
+export async function setTeamVisibility(teamId: string, visibility: 'PUBLIC' | 'FRIENDS' | 'PRIVATE') {
   const session = await auth();
   if (!session?.user) redirect('/signin');
 
@@ -75,9 +79,12 @@ export async function togglePublic(teamId: string, isPublic: boolean) {
     throw new Error('Time não encontrado.');
   }
 
-  await prisma.team.update({ where: { id: teamId }, data: { isPublic } });
+  await prisma.team.update({
+    where: { id: teamId },
+    data: { visibility, isPublic: visibility === 'PUBLIC' },
+  });
 
-  if (isPublic && !team.isPublic) {
+  if (visibility === 'PUBLIC' && !team.isPublic) {
     await prisma.activityEvent.create({
       data: { userId: session!.user.id, type: 'TEAM_PUBLISHED', payload: { teamId, teamName: team.name } },
     });

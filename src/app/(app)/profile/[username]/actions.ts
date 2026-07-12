@@ -55,6 +55,7 @@ export async function sendFriendRequest(targetUserId: string, targetUsername: st
 
   await prisma.friend.create({ data: { requesterId: me.id, addresseeId: targetUserId } });
   revalidatePath(`/profile/${targetUsername}`);
+  revalidatePath('/amigos');
 }
 
 export async function respondFriendRequest(friendId: string, accept: boolean) {
@@ -69,14 +70,16 @@ export async function respondFriendRequest(friendId: string, accept: boolean) {
   }
 
   revalidatePath('/dashboard');
+  revalidatePath('/amigos');
 }
 
-export async function removeFriend(friendId: string, targetUsername: string) {
+export async function removeFriend(friendId: string, targetUsername?: string) {
   const me = await requireUser();
   const friend = await prisma.friend.findUnique({ where: { id: friendId } });
   if (!friend || (friend.requesterId !== me.id && friend.addresseeId !== me.id)) {
     throw new Error('Amizade não encontrada.');
   }
   await prisma.friend.delete({ where: { id: friendId } });
-  revalidatePath(`/profile/${targetUsername}`);
+  if (targetUsername) revalidatePath(`/profile/${targetUsername}`);
+  revalidatePath('/amigos');
 }

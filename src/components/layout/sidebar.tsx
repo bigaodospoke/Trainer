@@ -3,40 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import {
-  LayoutDashboard,
-  Swords,
-  Calculator,
-  BookOpen,
-  TrendingUp,
-  Library,
-  Trophy,
-  Heart,
-  Star,
-  Settings,
-  ShieldCheck,
-} from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface NavItem {
-  label: string;
-  href: string;
-  icon: typeof LayoutDashboard;
-  /** Fases futuras (Team Builder, Pokedex, etc.) apontam para paginas
-   *  "em breve" ate a fase de dados/integracao ser concluida. */
-  comingSoon?: boolean;
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Team Builder', href: '/team-builder', icon: Swords },
-  { label: 'Damage Calculator', href: '/damage-calculator', icon: Calculator },
-  { label: 'Pokedex', href: '/pokedex', icon: BookOpen },
-  { label: 'Meta Analyzer', href: '/meta-analyzer', icon: TrendingUp },
-  { label: 'Biblioteca de Times', href: '/library', icon: Library },
-  { label: 'Rankings', href: '/rankings', icon: Trophy },
-  { label: 'Apoiadores', href: '/apoiadores', icon: Heart },
-];
+import { NAV_ITEMS, SECONDARY_NAV_ITEMS, ADMIN_NAV_ITEM } from './nav-items';
 
 interface SidebarProps {
   username: string;
@@ -94,27 +62,23 @@ export function Sidebar({ username, isAdmin }: SidebarProps) {
       </nav>
 
       <div className="mt-2 flex flex-col gap-1 border-t border-white/5 pt-3">
-        <Link
-          href="/favoritos"
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition-colors hover:text-ink-primary"
-        >
-          <Star className="h-[18px] w-[18px]" strokeWidth={1.75} />
-          Meus Favoritos
-        </Link>
-        <Link
-          href="/settings"
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition-colors hover:text-ink-primary"
-        >
-          <Settings className="h-[18px] w-[18px]" strokeWidth={1.75} />
-          Configuracoes
-        </Link>
-        {isAdmin && (
+        {SECONDARY_NAV_ITEMS.map((item) => (
           <Link
-            href="/admin"
+            key={item.href}
+            href={item.href}
             className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition-colors hover:text-ink-primary"
           >
-            <ShieldCheck className="h-[18px] w-[18px]" strokeWidth={1.75} />
-            Administracao
+            <item.icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+            {item.label}
+          </Link>
+        ))}
+        {isAdmin && (
+          <Link
+            href={ADMIN_NAV_ITEM.href}
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition-colors hover:text-ink-primary"
+          >
+            <ADMIN_NAV_ITEM.icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+            {ADMIN_NAV_ITEM.label}
           </Link>
         )}
         <Link

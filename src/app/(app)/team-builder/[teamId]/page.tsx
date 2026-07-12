@@ -1,17 +1,17 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
-import { Plus, Trash2, Globe, Lock } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { TypeBadgeRow } from '@/components/ui/type-badge';
 import { ValidationBanner } from '@/components/team-builder/validation-banner';
+import { TeamBuilderSlotCard } from '@/components/team-builder/team-builder-slot-card';
+import { TeamVisibilitySelect } from '@/components/team-builder/team-visibility-select';
 import { computeTeamIssues } from '@/lib/team-builder/validation';
 import { buildExportTeamText, type ExportableSlot } from '@/lib/team-builder/showdown-format';
-import { deleteTeam, togglePublic } from '../actions';
+import { deleteTeam, setTeamVisibility } from '../actions';
 import { ImportExportPanel } from './import-export';
 
 interface TeamEditorPageProps {
@@ -72,13 +72,12 @@ export default async function TeamEditorPage({ params }: TeamEditorPageProps) {
           <p className="text-sm text-ink-muted">{team.slots.length}/6 slots preenchidos</p>
         </div>
 
-        <div className="flex gap-2">
-          <form action={togglePublic.bind(null, team.id, !team.isPublic)}>
-            <Button type="submit" variant="secondary" size="sm">
-              {team.isPublic ? <Globe className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-              {team.isPublic ? 'Público' : 'Privado'}
-            </Button>
-          </form>
+        <div className="flex flex-wrap gap-2">
+          <TeamVisibilitySelect
+            teamId={team.id}
+            visibility={team.visibility}
+            action={setTeamVisibility}
+          />
           <form action={deleteTeam.bind(null, team.id)}>
             <Button type="submit" variant="danger" size="sm">
               <Trash2 className="h-3.5 w-3.5" />
@@ -90,27 +89,20 @@ export default async function TeamEditorPage({ params }: TeamEditorPageProps) {
 
       <ValidationBanner issues={issues} />
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {Array.from({ length: 6 }).map((_, i) => {
           const position = i + 1;
           const slot = team.slots.find((s: (typeof team.slots)[number]) => s.position === position);
 
+          if (slot) {
+            return <TeamBuilderSlotCard key={position} teamId={team.id} position={position} slot={slot} />;
+          }
+
           return (
             <Link key={position} href={`/team-builder/${team.id}/slot/${position}`}>
-              <GlassCard padding="sm" hover className="flex h-40 flex-col items-center justify-center gap-2 text-center">
-                {slot ? (
-                  <>
-                    <Image src={slot.species.spriteAnimatedUrl ?? slot.species.spriteUrl ?? ''} alt={slot.species.name} width={56} height={56} unoptimized />
-                    <p className="text-xs font-medium text-ink-primary">{slot.nickname || slot.species.name}</p>
-                    <TypeBadgeRow types={slot.species.types} size="sm" />
-                    <p className="text-[10px] text-ink-dim">Lv.{slot.level} · {slot.moves.length}/4 golpes</p>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-6 w-6 text-ink-dim" strokeWidth={1.5} />
-                    <p className="text-xs text-ink-dim">Adicionar</p>
-                  </>
-                )}
+              <GlassCard padding="sm" hover className="flex h-full min-h-[104px] flex-col items-center justify-center gap-2 text-center">
+                <Plus className="h-6 w-6 text-ink-dim" strokeWidth={1.5} />
+                <p className="text-xs text-ink-dim">Adicionar Pokémon</p>
               </GlassCard>
             </Link>
           );

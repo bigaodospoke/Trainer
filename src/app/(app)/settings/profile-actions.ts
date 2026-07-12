@@ -74,6 +74,6 @@ export async function updateFullProfile(
   });
 
   revalidatePath(`/profile/${me.username}`);
-  revalidatePath('/settings');
+  revalidatePath('/settings/perfil');
   return { ok: true };
 }

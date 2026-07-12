@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { PokemonIcon } from '@/components/team-builder/sprite-icon';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PokedexFormFilter } from '@/components/pokedex/form-filter';
+import { FORM_KIND_LABELS } from '@/lib/pokedex/form-kinds';
 
 const TYPES = [
   'NORMAL', 'FIRE', 'WATER', 'ELECTRIC', 'GRASS', 'ICE', 'FIGHTING', 'POISON',
@@ -15,16 +17,18 @@ const TYPES = [
 ];
 
 interface PokedexPageProps {
-  searchParams: Promise<{ q?: string; type?: string; gen?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; type?: string; gen?: string; page?: string; forms?: string }>;
 }
 
 export default async function PokedexPage({ searchParams }: PokedexPageProps) {
   const params = await searchParams;
+  const formKinds = params.forms ? params.forms.split(',').filter(Boolean) : [];
   const { items, total, page, totalPages } = await searchSpecies({
     q: params.q,
     type: params.type,
     generation: params.gen ? Number(params.gen) : undefined,
     page: params.page ? Number(params.page) : 1,
+    formKinds,
   });
 
   const cleanParams = Object.fromEntries(
@@ -41,8 +45,9 @@ export default async function PokedexPage({ searchParams }: PokedexPageProps) {
         </div>
       </div>
 
-      <GlassCard padding="md">
+      <GlassCard padding="md" className="relative z-30">
         <form className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+          <input type="hidden" name="forms" value={params.forms ?? ''} />
           <div className="sm:col-span-2">
             <Input name="q" defaultValue={params.q ?? ''} placeholder="Buscar por nome..." />
           </div>
@@ -70,9 +75,12 @@ export default async function PokedexPage({ searchParams }: PokedexPageProps) {
               </option>
             ))}
           </select>
-          <Button type="submit" className="sm:col-span-4 sm:w-fit">
-            Filtrar
-          </Button>
+          <div className="flex items-center gap-2 sm:col-span-4">
+            <Button type="submit" className="w-fit">
+              Filtrar
+            </Button>
+            <PokedexFormFilter />
+          </div>
         </form>
       </GlassCard>
 
@@ -92,6 +100,9 @@ export default async function PokedexPage({ searchParams }: PokedexPageProps) {
                 <p className="text-xs font-medium text-ink-primary">{species.name}</p>
                 <div className="flex flex-wrap items-center justify-center gap-1">
                   {species.tiers[0] && <Badge tone="purple">{species.tiers[0].tier}</Badge>}
+                  {species.formKind !== 'BASE' && (
+                    <Badge tone="neutral">{FORM_KIND_LABELS[species.formKind] ?? species.formKind}</Badge>
+                  )}
                 </div>
               </GlassCard>
             </Link>

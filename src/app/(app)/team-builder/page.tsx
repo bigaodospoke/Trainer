@@ -54,8 +54,8 @@ export default async function TeamBuilderPage() {
               <GlassCard padding="md" hover className="h-full">
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="font-display text-sm font-semibold text-ink-primary">{team.name}</h3>
-                  <Badge tone={team.isPublic ? 'success' : 'neutral'}>
-                    {team.isPublic ? 'Público' : 'Privado'}
+                  <Badge tone={team.visibility === 'PUBLIC' ? 'success' : team.visibility === 'FRIENDS' ? 'purple' : 'neutral'}>
+                    {team.visibility === 'PUBLIC' ? 'Público' : team.visibility === 'FRIENDS' ? 'Amigos' : 'Privado'}
                   </Badge>
                 </div>
 

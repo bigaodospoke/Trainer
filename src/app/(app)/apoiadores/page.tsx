@@ -1,17 +1,25 @@
-import { Heart, Trophy } from 'lucide-react';
+import { Heart, Trophy, ExternalLink } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Avatar } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
   getActiveSupporters,
+  getOrCreatePlatformCards,
   groupSupportersByTier,
   SUPPORTER_TIER_ORDER,
   SUPPORTER_TIER_META,
   type SupporterListItem,
 } from '@/lib/supporters/queries';
 
+const DEFAULT_MESSAGE =
+  'Gostou do projeto e quer ajudar a manter ele ativo? Qualquer apoio faz diferença e ajuda a trazer novas funcionalidades, melhorias e conteúdos para a comunidade.';
+
 export default async function ApoiadoresPage() {
-  const supporters = await getActiveSupporters();
+  const [supporters, platformCardsRaw] = await Promise.all([
+    getActiveSupporters(),
+    getOrCreatePlatformCards(),
+  ]);
+  const platformCards = platformCardsRaw.filter((p) => p.link);
   const grouped = groupSupportersByTier(supporters);
   const ranking = supporters.slice(0, 10);
 
@@ -21,16 +29,34 @@ export default async function ApoiadoresPage() {
         <Heart className="h-6 w-6 text-purple-neon" strokeWidth={1.75} />
         <div>
           <h1 className="font-display text-2xl font-semibold text-ink-primary">Apoiadores</h1>
-          <p className="text-sm text-ink-muted">
-            Pessoas que ajudam a manter o Trainerly no ar. Em breve: apoie via Pix, Apoia.se, Ko-fi ou Patreon.
-          </p>
+          <p className="max-w-2xl text-sm text-ink-muted">{DEFAULT_MESSAGE}</p>
         </div>
       </div>
+
+      {platformCards.length > 0 && (
+        <div>
+          <h2 className="mb-4 font-display text-sm font-semibold text-ink-primary">Apoie o projeto</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {platformCards.map((p: (typeof platformCards)[number]) => (
+              <a key={p.id} href={p.link!} target="_blank" rel="noopener noreferrer" className="block h-full">
+                <GlassCard padding="lg" hover className="flex h-full flex-col items-center gap-3 text-center">
+                  <Avatar src={p.photoUrl} name={p.name} size={56} />
+                  <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-ink-primary">
+                    {p.name}
+                    <ExternalLink className="h-3 w-3 text-ink-dim" strokeWidth={1.75} />
+                  </p>
+                  <p className="text-xs text-ink-muted">{p.message || DEFAULT_MESSAGE}</p>
+                </GlassCard>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {supporters.length === 0 ? (
         <EmptyState
           title="Ainda sem apoiadores cadastrados"
-          description="Quando o sistema de apoio for ativado, quem contribuir aparece aqui, organizado por categoria."
+          description="Quando alguém apoiar o projeto, aparece aqui, organizado por categoria."
         />
       ) : (
         <>
@@ -40,23 +66,20 @@ export default async function ApoiadoresPage() {
               Ranking de maiores apoiadores
             </h2>
             <div className="flex flex-col gap-2">
-              {ranking.map((s: SupporterListItem, i: number) => {
-                const meta = SUPPORTER_TIER_META[s.tier as keyof typeof SUPPORTER_TIER_META];
-                return (
-                  <div
-                    key={s.id}
-                    className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5"
-                  >
-                    <span className="w-5 text-center font-mono text-xs text-ink-dim">{i + 1}</span>
-                    <Avatar src={s.photoUrl} name={s.name} size={32} />
-                    <div className="flex-1">
-                      <p className="text-sm text-ink-primary">{s.name}</p>
-                      {s.role && <p className="text-xs text-ink-dim">{s.role}</p>}
-                    </div>
-                    <TierPill tier={s.tier as keyof typeof SUPPORTER_TIER_META} />
+              {ranking.map((s: SupporterListItem, i: number) => (
+                <div
+                  key={s.id}
+                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5"
+                >
+                  <span className="w-5 text-center font-mono text-xs text-ink-dim">{i + 1}</span>
+                  <Avatar src={s.photoUrl} name={s.name} size={32} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm text-ink-primary">{s.name}</p>
+                    {s.role && <p className="truncate text-xs text-ink-dim">{s.role}</p>}
                   </div>
-                );
-              })}
+                  <TierPill tier={s.tier as keyof typeof SUPPORTER_TIER_META} />
+                </div>
+              ))}
             </div>
           </GlassCard>
 

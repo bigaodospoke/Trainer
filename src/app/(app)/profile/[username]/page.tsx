@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { UserPlus, UserCheck, Clock, Gamepad2, Trash2 } from 'lucide-react';
+import { UserPlus, UserCheck, Clock, Gamepad2, Trash2, MessageCircle } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Avatar } from '@/components/ui/avatar';
@@ -9,7 +9,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
-import { formatCount } from '@/lib/utils';
+import { cn, formatCount } from '@/lib/utils';
 import { CopyLinkButton } from '@/components/profile/copy-link-button';
 import { PostComposer } from '@/components/profile/post-composer';
 import { toggleFollow, sendFriendRequest } from './actions';
@@ -90,37 +90,56 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           </div>
         )}
 
-        <div className="relative flex flex-col items-center gap-4 px-6 py-8 sm:flex-row sm:items-end sm:gap-6">
-          {/* Pokémon favorito em destaque */}
+        <div className="relative flex flex-col items-center gap-4 px-6 py-8 sm:flex-row sm:flex-wrap sm:items-end sm:gap-6">
+          <Avatar src={user.avatarUrl} name={user.displayName ?? user.username} size={72} />
+
+          <div className="min-w-0 flex-1 text-center sm:text-left">
+            <h1 className="font-display text-2xl font-semibold text-ink-primary">
+              {user.displayName ?? user.username}
+            </h1>
+            <p className="text-sm text-ink-muted">@{user.username}</p>
+            {user.tags.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap justify-center gap-1.5 sm:justify-start">
+                {user.tags.map((tag: string) => (
+                  <span
+                    key={tag}
+                    className="rounded-pill border border-purple-neon/30 bg-purple-core/15 px-2 py-0.5 text-[11px] font-medium text-purple-ice"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+            {user.bio && <p className="mt-1 max-w-md text-sm text-ink-muted">{user.bio}</p>}
+          </div>
+
+          {/* Pokémon favorito em destaque — item normal do flex (com sm:ml-auto empurrando
+              ele + os botões pra direita no desktop), nunca sobrepõe nada por construção */}
           {user.favoritePokemon && (
-            <div className="absolute right-6 top-4 flex flex-col items-center gap-1 opacity-80">
+            <div className="flex flex-col items-center gap-1 opacity-80 sm:ml-auto">
               <Image
                 src={user.favoritePokemon.spriteAnimatedUrl ?? user.favoritePokemon.spriteUrl ?? ''}
                 alt={user.favoritePokemon.name}
-                width={80}
-                height={80}
+                width={64}
+                height={64}
                 unoptimized
               />
               <span className="text-[10px] text-ink-dim">{user.favoritePokemon.name}</span>
             </div>
           )}
 
-          <Avatar src={user.avatarUrl} name={user.displayName ?? user.username} size={72} />
-
-          <div className="flex-1 text-center sm:text-left">
-            <h1 className="font-display text-2xl font-semibold text-ink-primary">
-              {user.displayName ?? user.username}
-            </h1>
-            <p className="text-sm text-ink-muted">@{user.username}</p>
-            {user.bio && <p className="mt-1 max-w-md text-sm text-ink-muted">{user.bio}</p>}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
+          <div className={cn('flex flex-wrap justify-center gap-2', !user.favoritePokemon && 'sm:ml-auto')}>
             <CopyLinkButton username={user.username} />
             {isOwnProfile ? (
-              <Link href="/settings"><Button size="sm" variant="secondary">Editar perfil</Button></Link>
+              <Link href="/settings/perfil"><Button size="sm" variant="secondary">Editar perfil</Button></Link>
             ) : (
               <>
+                <Link href={`/mensagens/${user.username}`}>
+                  <Button variant="secondary" size="sm">
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    Mensagem
+                  </Button>
+                </Link>
                 <form action={toggleFollow.bind(null, user.id, user.username)}>
                   <Button type="submit" variant={isFollowing ? 'primary' : 'secondary'} size="sm">
                     {isFollowing ? <UserCheck className="h-3.5 w-3.5" /> : <UserPlus className="h-3.5 w-3.5" />}

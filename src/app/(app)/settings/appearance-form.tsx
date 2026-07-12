@@ -4,6 +4,7 @@ import { Moon, Sun, Laptop, MousePointer2, Volume2, VolumeX } from 'lucide-react
 import { useTheme } from '@/components/providers/theme-provider';
 import { usePreferences } from '@/components/providers/preferences-provider';
 import { GlassCard } from '@/components/ui/glass-card';
+import { CursorPicker } from '@/components/settings/cursor-picker';
 import type { ThemeMode } from '@/lib/theme';
 
 const THEME_OPTIONS: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
@@ -14,7 +15,7 @@ const THEME_OPTIONS: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
 
 export function AppearanceForm() {
   const { mode, setMode } = useTheme();
-  const { cursorEnabled, setCursorEnabled, soundEnabled, setSoundEnabled, soundVolume, setSoundVolume } =
+  const { cursorEnabled, setCursorEnabled, cursorSpecies, soundEnabled, setSoundEnabled, soundVolume, setSoundVolume } =
     usePreferences();
 
   return (
@@ -43,15 +44,22 @@ export function AppearanceForm() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <MousePointer2 className="h-4 w-4 text-ink-dim" strokeWidth={1.75} />
-            <div>
-              <p className="text-sm text-ink-primary">Cursor personalizado</p>
-              <p className="text-xs text-ink-dim">Psyduck no lugar do cursor padrão</p>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <MousePointer2 className="h-4 w-4 text-ink-dim" strokeWidth={1.75} />
+              <div>
+                <p className="text-sm text-ink-primary">Cursor personalizado</p>
+                <p className="text-xs text-ink-dim">Seta colorida (tipo de {cursorSpecies.name}) com o sprite ao lado</p>
+              </div>
             </div>
+            <ToggleSwitch checked={cursorEnabled} onChange={setCursorEnabled} label="Cursor personalizado" />
           </div>
-          <ToggleSwitch checked={cursorEnabled} onChange={setCursorEnabled} label="Cursor personalizado" />
+          {cursorEnabled && (
+            <div className="pl-7">
+              <CursorPicker />
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-4">

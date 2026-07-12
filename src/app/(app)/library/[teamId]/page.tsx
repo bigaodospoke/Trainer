@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft, Heart, MessageCircle } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { getPublicTeamDetail, hasUserLiked } from '@/lib/library/queries';
+import { areFriends } from '@/lib/friends/queries';
 import { buildExportTeamText, type ExportableSlot } from '@/lib/team-builder/showdown-format';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +25,10 @@ export default async function LibraryDetailPage({ params }: LibraryDetailPagePro
   const team = await getPublicTeamDetail(teamId);
 
   if (!team) notFound();
-  if (!team.isPublic && team.ownerId !== session!.user.id) redirect('/library');
+  if (!team.isPublic && team.ownerId !== session!.user.id) {
+    const allowedViaFriends = team.visibility === 'FRIENDS' && (await areFriends(session!.user.id, team.ownerId));
+    if (!allowedViaFriends) redirect('/library');
+  }
 
   const liked = await hasUserLiked(session!.user.id, teamId);
   const favorited = await isFavorited('TEAM', teamId);

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ShieldCheck, Users, Flag, RefreshCw } from 'lucide-react';
+import { ShieldCheck, Users, Flag, RefreshCw, Heart, Tags } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { GlassCard } from '@/components/ui/glass-card';
@@ -41,6 +41,27 @@ export default async function AdminPage() {
         <GlassCard padding="md"><Users className="mb-2 h-5 w-5 text-purple-neon" /><p className="font-mono text-2xl text-ink-primary">{userCount}</p><p className="text-xs text-ink-muted">Usuários</p></GlassCard>
         <GlassCard padding="md"><ShieldCheck className="mb-2 h-5 w-5 text-purple-neon" /><p className="font-mono text-2xl text-ink-primary">{teamCount}</p><p className="text-xs text-ink-muted">Times</p></GlassCard>
         <GlassCard padding="md"><Flag className="mb-2 h-5 w-5 text-danger" /><p className="font-mono text-2xl text-ink-primary">{reportCount}</p><p className="text-xs text-ink-muted">Denúncias abertas</p></GlassCard>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Link href="/admin/supporters">
+          <GlassCard padding="md" hover className="flex h-full items-center gap-3">
+            <Heart className="h-5 w-5 text-purple-neon" strokeWidth={1.75} />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-ink-primary">Gerenciar apoiadores</p>
+              <p className="text-xs text-ink-muted">Plataformas de apoio (Ko-fi, Patreon, Pix) e apoiadores individuais</p>
+            </div>
+          </GlassCard>
+        </Link>
+        <Link href="/admin/users">
+          <GlassCard padding="md" hover className="flex h-full items-center gap-3">
+            <Tags className="h-5 w-5 text-purple-neon" strokeWidth={1.75} />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-ink-primary">Tags de usuário</p>
+              <p className="text-xs text-ink-muted">Marcar usuários como Apoiador, Dev, Moderador, etc.</p>
+            </div>
+          </GlassCard>
+        </Link>
       </div>
 
       <GlassCard padding="lg">

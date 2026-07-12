@@ -54,9 +54,9 @@ export const SPECIES_OPTIONS = (() => {
 })();
 
 export const MOVE_OPTIONS = (() => {
-  const list: { value: string }[] = [];
+  const list: { value: string; type: string; category: string }[] = [];
   for (const move of gen9.moves) {
-    list.push({ value: move.name });
+    list.push({ value: move.name, type: move.type, category: move.category });
   }
   return list.sort((a, b) => a.value.localeCompare(b.value));
 })();

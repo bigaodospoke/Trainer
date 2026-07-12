@@ -132,10 +132,10 @@ export function DamageCalculator() {
           <div className="lg:col-span-2">
             <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-dim">Golpe</label>
             <Combobox
-              options={MOVE_OPTIONS.map((m) => ({ value: m.value, icon: { iconSheetUrl: null, iconTop: null, iconLeft: null } }))}
+              iconKind="move"
+              options={MOVE_OPTIONS.map((m) => ({ value: m.value, moveType: m.type, moveCategory: m.category }))}
               defaultValue={moveName}
               placeholder="ex.: Earthquake"
-          
               onValueChange={setMoveName}
             />
           </div>

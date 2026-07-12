@@ -56,6 +56,21 @@ export async function setSlotSpecies(teamId: string, position: number, formData:
   redirect(`/team-builder/${teamId}/slot/${position}`);
 }
 
+/** Remove o Pokemon do slot por completo (volta a ficar "vazio"), usado pelo
+ *  icone de lixeira no card do editor — diferente de trocar de especie, que
+ *  mantem o slot e so reseta ability/golpes. */
+export async function clearSlot(teamId: string, position: number) {
+  await assertOwnership(teamId);
+
+  const slot = await prisma.teamSlot.findUnique({ where: { teamId_position: { teamId, position } } });
+  if (!slot) return;
+
+  await prisma.teamSlotMove.deleteMany({ where: { teamSlotId: slot.id } });
+  await prisma.teamSlot.delete({ where: { id: slot.id } });
+
+  revalidatePath(`/team-builder/${teamId}`);
+}
+
 const setFormSchema = z.object({
   nickname: z.string().trim().max(24).optional(),
   gender: z.enum(['M', 'F', 'N', '']).optional(),
@@ -121,9 +136,14 @@ export async function saveSlotSet(teamId: string, position: number, formData: Fo
   });
 
   await prisma.teamSlotMove.deleteMany({ where: { teamSlotId: slot.id } });
-  const moveIds = [parsed.move1, parsed.move2, parsed.move3, parsed.move4].filter(Boolean) as string[];
-  for (let i = 0; i < moveIds.length; i++) {
-    await prisma.teamSlotMove.create({ data: { teamSlotId: slot.id, moveId: moveIds[i]!, slot: i + 1 } });
+  const moveNames = [parsed.move1, parsed.move2, parsed.move3, parsed.move4].filter(Boolean) as string[];
+  const moves = await Promise.all(
+    moveNames.map((name) => prisma.move.findUnique({ where: { showdownId: toId(name) } }))
+  );
+  let slotIndex = 1;
+  for (const move of moves) {
+    if (!move) continue;
+    await prisma.teamSlotMove.create({ data: { teamSlotId: slot.id, moveId: move.id, slot: slotIndex++ } });
   }
 
   revalidatePath(`/team-builder/${teamId}`);

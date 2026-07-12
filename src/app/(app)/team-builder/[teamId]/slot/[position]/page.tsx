@@ -105,7 +105,7 @@ async function SetEditor({
 }) {
   const slot = await prisma.teamSlot.findUnique({
     where: { id: slotId },
-    include: { moves: { orderBy: { slot: 'asc' } }, item: true },
+    include: { moves: { include: { move: true }, orderBy: { slot: 'asc' } }, item: true },
   });
   if (!slot) notFound();
 
@@ -117,7 +117,12 @@ async function SetEditor({
   if (!species) notFound();
 
   const action = saveSlotSet.bind(null, teamId, position);
-  const moveAt = (n: number) => slot.moves.find((m: (typeof slot.moves)[number]) => m.slot === n)?.moveId ?? '';
+  const moveAt = (n: number) => slot.moves.find((m: (typeof slot.moves)[number]) => m.slot === n)?.move.name ?? '';
+  const moveOptions = learnableMoves.map((move: (typeof learnableMoves)[number]) => ({
+    value: move.name,
+    moveType: move.type,
+    moveCategory: move.category,
+  }));
 
   const itemOptions = items.map((item: (typeof items)[number]) => ({
     value: item.name,
@@ -237,14 +242,15 @@ async function SetEditor({
           <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-ink-dim">Golpes</label>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {[1, 2, 3, 4].map((n) => (
-              <Select key={n} name={`move${n}`} defaultValue={moveAt(n)}>
-                <option value="">— vazio —</option>
-                {learnableMoves.map((move: (typeof learnableMoves)[number]) => (
-                  <option key={move.id} value={move.id}>
-                    {move.name} ({move.type}, {move.category})
-                  </option>
-                ))}
-              </Select>
+              <Combobox
+                key={n}
+                name={`move${n}`}
+                iconKind="move"
+                options={moveOptions}
+                defaultValue={moveAt(n)}
+                placeholder="ex.: Dragon Claw"
+                allowEmpty
+              />
             ))}
           </div>
           {learnableMoves.length === 0 && (

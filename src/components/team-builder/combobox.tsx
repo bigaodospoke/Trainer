@@ -3,10 +3,17 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { PokemonIcon, ItemIcon } from '@/components/team-builder/sprite-icon';
+import { TypeBadge } from '@/components/ui/type-badge';
+import { MoveCategoryIcon } from '@/components/ui/move-category-icon';
 
 export interface ComboboxOption {
   value: string;
-  icon: { iconSheetUrl: string | null; iconTop: number | null; iconLeft: number | null };
+  /** "pokemon"/"item": icone do sprite sheet. Omitido quando iconKind="move". */
+  icon?: { iconSheetUrl: string | null; iconTop: number | null; iconLeft: number | null };
+  /** So usados quando iconKind="move" — golpes nao tem sprite, mostram o
+   *  badge de tipo + icone de categoria (fisico/especial/status) em vez. */
+  moveType?: string;
+  moveCategory?: string;
 }
 
 interface ComboboxProps {
@@ -25,7 +32,7 @@ interface ComboboxProps {
    * "desalinhados/esticados" — o combobox de item usava sempre o icone de
    * Pokemon por engano).
    */
-  iconKind?: 'pokemon' | 'item';
+  iconKind?: 'pokemon' | 'item' | 'move';
   /** Para uso controlado fora de um <form> (ex.: Damage Calculator), chamado
    *  a cada mudanca de texto e quando uma opcao e selecionada. */
   onValueChange?: (value: string) => void;
@@ -57,6 +64,19 @@ export function Combobox({
 }: ComboboxProps) {
   const resolvedPreviewSize = previewSize ?? (iconKind === 'item' ? 32 : 40);
   const Icon = iconKind === 'item' ? ItemIcon : PokemonIcon;
+
+  function renderOptionIcon(option: ComboboxOption) {
+    if (iconKind === 'move') {
+      return (
+        <span className="flex shrink-0 items-center gap-1">
+          <TypeBadge type={option.moveType ?? ''} variant="icon" size="sm" />
+          {option.moveCategory && <MoveCategoryIcon category={option.moveCategory} className="h-3 w-3 text-ink-dim" />}
+        </span>
+      );
+    }
+    return <Icon icon={option.icon!} alt={option.value} />;
+  }
+
   const [text, setText] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(0);
@@ -111,10 +131,13 @@ export function Combobox({
   return (
     <div className="flex items-center gap-2.5">
       <div
-        className="flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-white/5"
-        style={{ width: resolvedPreviewSize, height: resolvedPreviewSize }}
+        className={cn(
+          'flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-white/5',
+          iconKind === 'move' && 'w-auto px-1.5'
+        )}
+        style={iconKind === 'move' ? { height: resolvedPreviewSize } : { width: resolvedPreviewSize, height: resolvedPreviewSize }}
       >
-        {matched ? <Icon icon={matched.icon} alt={matched.value} /> : null}
+        {matched ? renderOptionIcon(matched) : null}
       </div>
 
       <div ref={containerRef} className="relative flex-1">
@@ -168,7 +191,7 @@ export function Combobox({
                   )}
                   onMouseEnter={() => setHighlighted(i)}
                 >
-                  <Icon icon={option.icon} alt={option.value} />
+                  {renderOptionIcon(option)}
                   <span className="truncate">{option.value}</span>
                 </button>
               </li>

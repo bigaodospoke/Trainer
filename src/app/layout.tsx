@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
+import Script from 'next/script';
 import { Providers } from '@/components/providers/providers';
 import { THEME_COOKIE, isThemeMode, resolveTheme, type ThemeMode } from '@/lib/theme';
 import './globals.css';
@@ -39,8 +40,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="pt-BR" className={resolved === 'light' ? 'light' : undefined} data-theme-mode={mode}>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: NO_FLASH_SCRIPT }} />
-      </head>
+  <script dangerouslySetInnerHTML={{ __html: NO_FLASH_SCRIPT }} />
+
+  <Script
+    async
+    strategy="afterInteractive"
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6329130194994851"
+    crossOrigin="anonymous"
+  />
+</head>
       <body className="font-body antialiased">
         <div className="tera-ambient" />
         <Providers initialThemeMode={mode}>{children}</Providers>

@@ -22,10 +22,21 @@ interface PreferencesContextValue {
   setCursorEnabled: (v: boolean) => void;
   cursorSpecies: CursorSpecies;
   setCursorSpecies: (v: CursorSpecies) => void;
+  /** false no Firefox — o cursor customizado depende de esconder a seta do
+   *  SO via `cursor: none`, algo que o Firefox as vezes ignora em campos de
+   *  formulario/certos elementos, deixando a seta nativa e a nossa desenhada
+   *  sobrepostas. Ate isso ser corrigido de forma confiavel, desativamos a
+   *  troca de cursor no Firefox e mantemos so a seta padrao do navegador. */
+  isCursorSupported: boolean;
   soundEnabled: boolean;
   setSoundEnabled: (v: boolean) => void;
   soundVolume: number;
   setSoundVolume: (v: number) => void;
+}
+
+function detectCursorSupport(): boolean {
+  if (typeof navigator === 'undefined') return true;
+  return !/firefox/i.test(navigator.userAgent);
 }
 
 const PreferencesContext = createContext<PreferencesContextValue | null>(null);
@@ -40,6 +51,13 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
   const [cursorSpecies, setCursorSpeciesState] = useState<CursorSpecies>(DEFAULT_CURSOR_SPECIES);
   const [soundEnabled, setSoundEnabledState] = useState(true);
   const [soundVolume, setSoundVolumeState] = useState(0.6);
+  // Comeca "true" (assume suportado) pra nao piscar; useEffect corrige logo
+  // no primeiro render do client, antes do cursor customizado ser ativado.
+  const [isCursorSupported, setIsCursorSupported] = useState(true);
+
+  useEffect(() => {
+    setIsCursorSupported(detectCursorSupport());
+  }, []);
 
   // Le preferencias salvas apos montar (evita mismatch de SSR).
   useEffect(() => {
@@ -63,8 +81,8 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('cursor-custom', cursorEnabled);
-  }, [cursorEnabled]);
+    document.documentElement.classList.toggle('cursor-custom', cursorEnabled && isCursorSupported);
+  }, [cursorEnabled, isCursorSupported]);
 
   const setCursorEnabled = useCallback((v: boolean) => {
     setCursorEnabledState(v);
@@ -95,23 +113,26 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
     } catch {}
   }, []);
 
+  const cursorActive = cursorEnabled && isCursorSupported;
+
   const value = useMemo(
     () => ({
       cursorEnabled,
       setCursorEnabled,
       cursorSpecies,
       setCursorSpecies,
+      isCursorSupported,
       soundEnabled,
       setSoundEnabled,
       soundVolume,
       setSoundVolume,
     }),
-    [cursorEnabled, setCursorEnabled, cursorSpecies, setCursorSpecies, soundEnabled, setSoundEnabled, soundVolume, setSoundVolume]
+    [cursorEnabled, setCursorEnabled, cursorSpecies, setCursorSpecies, isCursorSupported, soundEnabled, setSoundEnabled, soundVolume, setSoundVolume]
   );
 
   return (
     <PreferencesContext.Provider value={value}>
-      {cursorEnabled && (
+      {cursorActive && (
         <style jsx global>{`
           html.cursor-custom,
           html.cursor-custom * {
@@ -119,7 +140,7 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
           }
         `}</style>
       )}
-      {cursorEnabled && <CustomCursor species={cursorSpecies} />}
+      {cursorActive && <CustomCursor species={cursorSpecies} />}
       {children}
     </PreferencesContext.Provider>
   );

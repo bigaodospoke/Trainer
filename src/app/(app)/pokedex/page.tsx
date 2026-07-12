@@ -23,7 +23,10 @@ interface PokedexPageProps {
 
 export default async function PokedexPage({ searchParams }: PokedexPageProps) {
   const params = await searchParams;
-  const formKinds = params.forms ? params.forms.split(',').filter(Boolean) : [];
+  // Sem `?forms=` na URL (primeira visita, sem preferencia salva ainda) —
+  // Paradox e Ultra Beasts vem habilitados por padrao; string vazia
+  // explicita (usuario desmarcou tudo no filtro) e respeitada como "nenhum".
+  const formKinds = params.forms !== undefined ? params.forms.split(',').filter(Boolean) : ['PARADOX', 'ULTRA_BEAST'];
   const { items, total, page, totalPages } = await searchSpecies({
     q: params.q,
     type: params.type,
@@ -50,7 +53,7 @@ export default async function PokedexPage({ searchParams }: PokedexPageProps) {
 
       <GlassCard padding="md" className="relative z-30">
         <form className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-          <input type="hidden" name="forms" value={params.forms ?? ''} />
+          <input type="hidden" name="forms" value={params.forms ?? formKinds.join(',')} />
           <div className="sm:col-span-2">
             <Input name="q" defaultValue={params.q ?? ''} placeholder="Buscar por nome..." />
           </div>

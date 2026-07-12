@@ -6,6 +6,7 @@ import { TypeBadgeRow, TypeBadge } from '@/components/ui/type-badge';
 import { MoveCategoryIcon } from '@/components/ui/move-category-icon';
 import { ItemIcon } from '@/components/team-builder/sprite-icon';
 import { formatEvSpread, formatIvSpread, GENDER_SYMBOL } from '@/lib/team-builder/format-spread';
+import { formatNatureLabel } from '@/lib/team-builder/natures';
 import { clearSlot } from '@/app/(app)/team-builder/[teamId]/slot/[position]/actions';
 
 export interface TeamBuilderSlotData {
@@ -91,6 +92,7 @@ export function TeamBuilderSlotCard({
         <div className="my-2 flex items-center gap-3">
           <div className="flex flex-1 flex-col gap-1.5 text-[11px]">
             <p className="truncate font-medium text-purple-ice">{slot.ability?.name ?? 'Sem ability'}</p>
+            <p className="truncate text-ink-dim">{formatNatureLabel(slot.natureName)}</p>
             {slot.item ? (
               <span className="flex items-center gap-1.5 text-ink-muted">
                 <ItemIcon icon={slot.item} alt={slot.item.name} />

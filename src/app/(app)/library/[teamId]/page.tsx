@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Heart, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Trophy } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { getPublicTeamDetail, hasUserLiked } from '@/lib/library/queries';
 import { areFriends } from '@/lib/friends/queries';
@@ -81,6 +81,12 @@ export default async function LibraryDetailPage({ params }: LibraryDetailPagePro
               </Button>
             </form>
             <CopyExportButton teamId={team.id} exportText={exportText} downloadsCount={team.downloadsCount} />
+            <Link href={`/team-builder/${team.id}/hall-of-fame`}>
+              <Button type="button" variant="secondary" size="sm">
+                <Trophy className="h-3.5 w-3.5" />
+                Hall of Fame
+              </Button>
+            </Link>
           </div>
         </div>
       </GlassCard>

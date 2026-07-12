@@ -1,12 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-
-interface IvInputsProps {
-  defaults: { hp: number; atk: number; def: number; spa: number; spd: number; spe: number };
+export interface IvSpread {
+  hp: number; atk: number; def: number; spa: number; spd: number; spe: number;
 }
 
-const STAT_LABELS: { key: keyof IvInputsProps['defaults']; label: string; formKey: string }[] = [
+interface IvInputsProps {
+  values: IvSpread;
+  onChange: (key: keyof IvSpread, value: number) => void;
+  onSetAll: (value: number) => void;
+}
+
+const STAT_LABELS: { key: keyof IvSpread; label: string; formKey: string }[] = [
   { key: 'hp', label: 'HP', formKey: 'ivHp' },
   { key: 'atk', label: 'Atk', formKey: 'ivAtk' },
   { key: 'def', label: 'Def', formKey: 'ivDef' },
@@ -15,19 +19,10 @@ const STAT_LABELS: { key: keyof IvInputsProps['defaults']; label: string; formKe
   { key: 'spe', label: 'Spe', formKey: 'ivSpe' },
 ];
 
-/** IVs com slider (0-31) + atalho "31 em todos" / "0 em todos" — mais rapido
- *  que digitar 6 campos numericos manualmente. */
-export function IvInputs({ defaults }: IvInputsProps) {
-  const [values, setValues] = useState(defaults);
-
-  function setStat(key: keyof IvInputsProps['defaults'], raw: number) {
-    setValues((v) => ({ ...v, [key]: Math.max(0, Math.min(31, Math.round(raw))) }));
-  }
-
-  function setAll(v: number) {
-    setValues({ hp: v, atk: v, def: v, spa: v, spd: v, spe: v });
-  }
-
+/** IVs com slider (0-31) + atalho "31 em todos" / "0 em todos". Controlado
+ *  pelo pai (StatsEditor) — ver EvInputs pro motivo (calculo de stats finais
+ *  em tempo real precisa do valor atual num componente irmao). */
+export function IvInputs({ values, onChange, onSetAll }: IvInputsProps) {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
@@ -35,14 +30,14 @@ export function IvInputs({ defaults }: IvInputsProps) {
         <div className="flex gap-1.5">
           <button
             type="button"
-            onClick={() => setAll(31)}
+            onClick={() => onSetAll(31)}
             className="rounded-pill border border-white/10 px-2 py-0.5 text-[10px] text-ink-muted hover:text-ink-primary"
           >
             31 em todos
           </button>
           <button
             type="button"
-            onClick={() => setAll(0)}
+            onClick={() => onSetAll(0)}
             className="rounded-pill border border-white/10 px-2 py-0.5 text-[10px] text-ink-muted hover:text-ink-primary"
           >
             0 em todos
@@ -61,7 +56,7 @@ export function IvInputs({ defaults }: IvInputsProps) {
               min={0}
               max={31}
               value={values[key]}
-              onChange={(e) => setStat(key, Number(e.target.value))}
+              onChange={(e) => onChange(key, Number(e.target.value))}
               className="h-1.5 flex-1 accent-purple-ice"
               aria-label={`${label} IV slider`}
             />
@@ -72,7 +67,7 @@ export function IvInputs({ defaults }: IvInputsProps) {
               min={0}
               max={31}
               value={values[key]}
-              onChange={(e) => setStat(key, Number(e.target.value) || 0)}
+              onChange={(e) => onChange(key, Number(e.target.value) || 0)}
               className="h-8 w-14 shrink-0 rounded-lg border border-white/10 bg-void-surface/80 px-1.5 text-center text-xs text-ink-primary outline-none focus:border-purple-neon/50 focus:ring-2 focus:ring-purple-neon/20"
             />
           </div>

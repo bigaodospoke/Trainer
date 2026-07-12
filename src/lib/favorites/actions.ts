@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-export type FavoriteTargetType = 'POKEMON' | 'TEAM' | 'STRATEGY';
+export type FavoriteTargetType = 'POKEMON' | 'TEAM' | 'STRATEGY' | 'POST';
 
 /** Cria ou remove o favorito (toggle) e revalida a pagina de origem. */
 export async function toggleFavorite(targetType: FavoriteTargetType, targetId: string, revalidate?: string) {

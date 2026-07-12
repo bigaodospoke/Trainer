@@ -55,6 +55,8 @@ model User {
   sentMessages           Message[]          @relation("MessageSender")
   messageReactions       MessageReaction[]
   partnerServers         PartnerServer[]
+  postLikes              PostLike[]
+  postComments           PostComment[]
 
   @@index([username])
 }
@@ -332,6 +334,7 @@ model Team {
   partner        PartnerServer? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   slots          TeamSlot[]
   sharedInMessages Message[]
+  sharedInPosts  UserPost[]
 
   @@index([ownerId])
   @@index([isPublic, battleFormat])
@@ -493,15 +496,47 @@ model DataVersion {
 }
 
 model UserPost {
-  id        String   @id @default(cuid())
-  authorId  String
-  content   String   @db.VarChar(2000)
-  imageUrl  String?
-  isHidden  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  id            String        @id @default(cuid())
+  authorId      String
+  content       String        @db.VarChar(2000)
+  imageUrl      String?
+  /// Post de "compartilhar time" — reaproveita o Team existente em vez de
+  /// duplicar dados; SetNull se o time original for apagado (o post continua
+  /// existindo, so perde o card do time).
+  sharedTeamId  String?
+  likesCount    Int           @default(0)
+  commentsCount Int           @default(0)
+  isHidden      Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  author        User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  sharedTeam    Team?         @relation(fields: [sharedTeamId], references: [id], onDelete: SetNull)
+  likes         PostLike[]
+  comments      PostComment[]
 
   @@index([authorId, createdAt])
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      UserPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  authorId  String
+  postId    String
+  content   String   @db.VarChar(1000)
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      UserPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
 }
 
 model Report {
@@ -688,6 +723,7 @@ enum FavoriteTargetType {
   POKEMON
   TEAM
   STRATEGY
+  POST
 }
 
 model Favorite {

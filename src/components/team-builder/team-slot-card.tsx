@@ -3,6 +3,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { TypeBadgeRow, TypeBadge } from '@/components/ui/type-badge';
 import { ItemIcon } from '@/components/team-builder/sprite-icon';
 import { formatEvSpread, formatIvSpread, GENDER_SYMBOL } from '@/lib/team-builder/format-spread';
+import { formatNatureLabel } from '@/lib/team-builder/natures';
 
 export interface TeamSlotCardData {
   id: string;
@@ -101,7 +102,7 @@ export function TeamSlotCard({ slot }: { slot: TeamSlotCardData }) {
           <span className="text-ink-primary">{slot.ability?.name ?? '—'}</span>
         </Row>
         <Row label="Nature">
-          <span className="text-ink-primary">{slot.natureName}</span>
+          <span className="text-ink-primary">{formatNatureLabel(slot.natureName)}</span>
         </Row>
         {slot.teraType && (
           <Row label="Tera">

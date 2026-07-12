@@ -86,8 +86,16 @@ export function Combobox({
   const filtered = useMemo(() => {
     const query = text.trim().toLowerCase();
     if (!query) return options.slice(0, MAX_RESULTS);
-    return options.filter((o) => o.value.toLowerCase().includes(query)).slice(0, MAX_RESULTS);
-  }, [text, options]);
+    return options
+      .filter((o) => {
+        if (o.value.toLowerCase().includes(query)) return true;
+        // busca combinada nome+tipo — so faz sentido pra golpes, onde o tipo
+        // e um dado relevante de busca (ex.: digitar "fire" filtra golpes de Fogo)
+        if (iconKind === 'move' && o.moveType?.toLowerCase().includes(query)) return true;
+        return false;
+      })
+      .slice(0, MAX_RESULTS);
+  }, [text, options, iconKind]);
 
   const matched = useMemo(
     () => options.find((o) => o.value.toLowerCase() === text.trim().toLowerCase()),

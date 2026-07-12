@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
-import { getAvailableMonths, getSpeciesUsage, getWeightedAggregate } from '@/lib/meta-analyzer/queries';
+import { getAvailableMonths, getSpeciesUsage, getWeightedAggregate, getTeammates } from '@/lib/meta-analyzer/queries';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -74,14 +74,22 @@ export default async function MetaAnalyzerPage({ searchParams }: MetaAnalyzerPag
 
 async function MetaContent({ formatId, month, previousMonth }: { formatId: string; month: Date; previousMonth: Date | null }) {
   const [species, moves, items, abilities, teraTypes] = await Promise.all([
-    getSpeciesUsage(formatId, month, previousMonth),
+    getSpeciesUsage(formatId, month, previousMonth, 50),
     getWeightedAggregate(formatId, month, 'MOVE'),
     getWeightedAggregate(formatId, month, 'ITEM'),
     getWeightedAggregate(formatId, month, 'ABILITY'),
     getWeightedAggregate(formatId, month, 'TERA_TYPE'),
   ]);
 
+  const topSpecies = species[0] ? await getTeammates(species[0].speciesId, formatId, month) : [];
+
   const maxSpecies = species[0]?.usagePercent ?? 1;
+
+  const withDelta = species
+    .filter((s) => s.previousPercent !== null)
+    .map((s) => ({ ...s, delta: s.usagePercent - (s.previousPercent as number) }));
+  const risers = [...withDelta].sort((a, b) => b.delta - a.delta).filter((s) => s.delta > 0).slice(0, 5);
+  const fallers = [...withDelta].sort((a, b) => a.delta - b.delta).filter((s) => s.delta < 0).slice(0, 5);
 
   return (
     <div className="flex flex-col gap-4">
@@ -119,6 +127,57 @@ async function MetaContent({ formatId, month, previousMonth }: { formatId: strin
           </p>
         )}
       </GlassCard>
+
+      {previousMonth && (risers.length > 0 || fallers.length > 0) && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <GlassCard padding="lg">
+            <h2 className="mb-4 flex items-center gap-1.5 font-display text-sm font-semibold text-ink-primary">
+              <TrendingUp className="h-4 w-4 text-success" />
+              Subindo em uso
+            </h2>
+            <div className="flex flex-col gap-2">
+              {risers.length === 0 && <p className="text-xs text-ink-dim">Ninguém subindo este mês.</p>}
+              {risers.map((s) => (
+                <Link key={s.speciesId} href={`/pokedex/${s.slug}`} className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-white/5">
+                  <PokemonIcon icon={s} alt={s.name} />
+                  <span className="flex-1 truncate text-sm text-ink-primary">{s.name}</span>
+                  <span className="font-mono text-xs text-success">+{s.delta.toFixed(1)}%</span>
+                </Link>
+              ))}
+            </div>
+          </GlassCard>
+          <GlassCard padding="lg">
+            <h2 className="mb-4 flex items-center gap-1.5 font-display text-sm font-semibold text-ink-primary">
+              <TrendingDown className="h-4 w-4 text-danger" />
+              Caindo em uso
+            </h2>
+            <div className="flex flex-col gap-2">
+              {fallers.length === 0 && <p className="text-xs text-ink-dim">Ninguém caindo este mês.</p>}
+              {fallers.map((s) => (
+                <Link key={s.speciesId} href={`/pokedex/${s.slug}`} className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-white/5">
+                  <PokemonIcon icon={s} alt={s.name} />
+                  <span className="flex-1 truncate text-sm text-ink-primary">{s.name}</span>
+                  <span className="font-mono text-xs text-danger">{s.delta.toFixed(1)}%</span>
+                </Link>
+              ))}
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
+      {topSpecies.length > 0 && species[0] && (
+        <GlassCard padding="lg">
+          <h2 className="mb-1 font-display text-sm font-semibold text-ink-primary">
+            Top parceiros de {species[0].name}
+          </h2>
+          <p className="mb-4 text-xs text-ink-dim">Pokémon mais comuns nos mesmos times que o #1 mais usado do formato.</p>
+          <div className="flex flex-col gap-2">
+            {topSpecies.map((t) => (
+              <RowBar key={t.showdownId} label={t.name} value={t.usagePercent} max={topSpecies[0]?.usagePercent ?? 1} />
+            ))}
+          </div>
+        </GlassCard>
+      )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <AggregateCard title="Moves mais usados" rows={moves} />

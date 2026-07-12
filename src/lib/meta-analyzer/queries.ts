@@ -130,6 +130,97 @@ export async function getWeightedAggregate(
   }));
 }
 
+export interface BuildComponentRow {
+  refSlug: string;
+  displayName: string;
+  usagePercent: number;
+}
+
+export interface SpeciesBuildComponents {
+  abilities: BuildComponentRow[];
+  items: BuildComponentRow[];
+  moves: BuildComponentRow[];
+  teraTypes: BuildComponentRow[];
+}
+
+/** Componentes mais usados de UMA especie especifica (nao ponderado pelo
+ *  formato inteiro, ao contrario de getWeightedAggregate) — usado pelo
+ *  painel "Componentes mais usados" no Team Builder. A Smogon nao publica
+ *  "sets" completos com EV spread + % combinada nem win rate no chaos
+ *  report (so este por-componente), entao NAO fingimos ter uma "Build #1
+ *  (42.3%)" — mostramos cada componente com sua propria % real. */
+export async function getSpeciesBuildComponents(
+  speciesId: string,
+  formatId: string,
+  month: Date
+): Promise<SpeciesBuildComponents> {
+  const rows = await prisma.usageStat.findMany({
+    where: { speciesId, formatId, month, kind: { in: ['ABILITY', 'ITEM', 'MOVE', 'TERA_TYPE'] } },
+    orderBy: { usagePercent: 'desc' },
+  });
+
+  const byKind = { ABILITY: [] as typeof rows, ITEM: [] as typeof rows, MOVE: [] as typeof rows, TERA_TYPE: [] as typeof rows };
+  for (const row of rows) byKind[row.kind as keyof typeof byKind]?.push(row);
+
+  const abilitiesTop = byKind.ABILITY.slice(0, 5);
+  const itemsTop = byKind.ITEM.slice(0, 5);
+  const movesTop = byKind.MOVE.slice(0, 8);
+  const teraTop = byKind.TERA_TYPE.slice(0, 5);
+
+  const [abilityNames, itemNames, moveNames] = await Promise.all([
+    resolveDisplayNames('ABILITY', abilitiesTop.map((r) => r.refSlug)),
+    resolveDisplayNames('ITEM', itemsTop.map((r) => r.refSlug)),
+    resolveDisplayNames('MOVE', movesTop.map((r) => r.refSlug)),
+  ]);
+  const teraNames = await resolveDisplayNames('TERA_TYPE', teraTop.map((r) => r.refSlug));
+
+  const toRow = (names: Map<string, string>) => (r: { refSlug: string; usagePercent: number }): BuildComponentRow => ({
+    refSlug: r.refSlug,
+    displayName: names.get(r.refSlug) ?? r.refSlug,
+    usagePercent: r.usagePercent,
+  });
+
+  return {
+    abilities: abilitiesTop.map(toRow(abilityNames)),
+    items: itemsTop.map(toRow(itemNames)),
+    moves: movesTop.map(toRow(moveNames)),
+    teraTypes: teraTop.map(toRow(teraNames)),
+  };
+}
+
+/** "Top parceiros" — dados de kind=TEAMMATE, por especie (usados no painel
+ *  competitivo do Team Builder e na secao "Top parceiros" do Meta Analyzer). */
+export async function getTeammates(speciesId: string, formatId: string, month: Date, limit = 8) {
+  const rows = await prisma.usageStat.findMany({
+    where: { speciesId, formatId, month, kind: 'TEAMMATE' },
+    orderBy: { usagePercent: 'desc' },
+    take: limit,
+  });
+
+  interface TeammateSpecies {
+    showdownId: string;
+    slug: string;
+    name: string;
+    iconSheetUrl: string | null;
+    iconTop: number | null;
+    iconLeft: number | null;
+  }
+
+  const species = await prisma.pokemonSpecies.findMany({
+    where: { showdownId: { in: rows.map((r: { refSlug: string }) => r.refSlug) } },
+    select: { showdownId: true, slug: true, name: true, iconSheetUrl: true, iconTop: true, iconLeft: true },
+  });
+  const bySlug = new Map<string, TeammateSpecies>((species as TeammateSpecies[]).map((s) => [s.showdownId, s]));
+
+  return rows
+    .map((r: { refSlug: string; usagePercent: number }) => {
+      const sp = bySlug.get(r.refSlug);
+      if (!sp) return null;
+      return { ...sp, usagePercent: r.usagePercent };
+    })
+    .filter((r): r is TeammateSpecies & { usagePercent: number } => r !== null);
+}
+
 async function resolveDisplayNames(kind: 'MOVE' | 'ITEM' | 'ABILITY' | 'TERA_TYPE', slugs: string[]): Promise<Map<string, string>> {
   if (kind === 'TERA_TYPE') {
     return new Map(slugs.map((s) => [s, s.charAt(0).toUpperCase() + s.slice(1)]));

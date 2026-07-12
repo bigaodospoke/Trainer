@@ -15,8 +15,16 @@ const THEME_OPTIONS: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
 
 export function AppearanceForm() {
   const { mode, setMode } = useTheme();
-  const { cursorEnabled, setCursorEnabled, cursorSpecies, soundEnabled, setSoundEnabled, soundVolume, setSoundVolume } =
-    usePreferences();
+  const {
+    cursorEnabled,
+    setCursorEnabled,
+    cursorSpecies,
+    isCursorSupported,
+    soundEnabled,
+    setSoundEnabled,
+    soundVolume,
+    setSoundVolume,
+  } = usePreferences();
 
   return (
     <GlassCard padding="lg">
@@ -50,12 +58,21 @@ export function AppearanceForm() {
               <MousePointer2 className="h-4 w-4 text-ink-dim" strokeWidth={1.75} />
               <div>
                 <p className="text-sm text-ink-primary">Cursor personalizado</p>
-                <p className="text-xs text-ink-dim">Seta colorida (tipo de {cursorSpecies.name}) com o sprite ao lado</p>
+                <p className="text-xs text-ink-dim">
+                  {isCursorSupported
+                    ? `Seta colorida (tipo de ${cursorSpecies.name}) com o sprite ao lado`
+                    : 'Indisponível no Firefox por enquanto — use Chrome/Edge para essa funcionalidade'}
+                </p>
               </div>
             </div>
-            <ToggleSwitch checked={cursorEnabled} onChange={setCursorEnabled} label="Cursor personalizado" />
+            <ToggleSwitch
+              checked={cursorEnabled}
+              onChange={setCursorEnabled}
+              label="Cursor personalizado"
+              disabled={!isCursorSupported}
+            />
           </div>
-          {cursorEnabled && (
+          {cursorEnabled && isCursorSupported && (
             <div className="pl-7">
               <CursorPicker />
             </div>
@@ -103,10 +120,12 @@ function ToggleSwitch({
   checked,
   onChange,
   label,
+  disabled,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   label: string;
+  disabled?: boolean;
 }) {
   return (
     <button
@@ -114,8 +133,9 @@ function ToggleSwitch({
       role="switch"
       aria-checked={checked}
       aria-label={label}
+      disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative h-6 w-11 shrink-0 rounded-pill transition-colors ${
+      className={`relative h-6 w-11 shrink-0 rounded-pill transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
         checked ? 'bg-purple-core' : 'bg-white/10'
       }`}
     >

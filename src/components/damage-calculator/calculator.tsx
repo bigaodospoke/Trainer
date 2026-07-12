@@ -26,6 +26,7 @@ interface FieldConfig {
   isReflect: boolean;
   isLightScreen: boolean;
   isHelpingHand: boolean;
+  isCrit: boolean;
 }
 
 const EMPTY_FIELD: FieldConfig = {
@@ -34,6 +35,7 @@ const EMPTY_FIELD: FieldConfig = {
   isReflect: false,
   isLightScreen: false,
   isHelpingHand: false,
+  isCrit: false,
 };
 
 function buildPokemon(config: PokemonConfig) {
@@ -47,6 +49,8 @@ function buildPokemon(config: PokemonConfig) {
       teraType: (config.teraType || undefined) as never,
       evs: config.evs,
       ivs: config.ivs,
+      boosts: config.boosts,
+      status: config.status || undefined,
     });
   } catch {
     return null;
@@ -67,7 +71,7 @@ export function DamageCalculator() {
     if (!atk || !def || !moveName) return null;
 
     try {
-      const move = new Move(gen9, moveName);
+      const move = new Move(gen9, moveName, { isCrit: field.isCrit });
       const fieldObj = new Field({
         weather: field.weather === 'None' ? undefined : (field.weather as never),
         terrain: field.terrain === 'None' ? undefined : (field.terrain as never),
@@ -186,6 +190,15 @@ export function DamageCalculator() {
                 className="h-3.5 w-3.5 accent-purple-core"
               />
               Helping Hand (atacante)
+            </label>
+            <label className="flex items-center gap-2 text-xs text-ink-muted">
+              <input
+                type="checkbox"
+                checked={field.isCrit}
+                onChange={(e) => setField({ ...field, isCrit: e.target.checked })}
+                className="h-3.5 w-3.5 accent-purple-core"
+              />
+              Critical Hit
             </label>
           </div>
         </div>

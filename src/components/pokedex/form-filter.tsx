@@ -7,10 +7,14 @@ import { FORM_KIND_FILTERS } from '@/lib/pokedex/form-kinds';
 
 const STORAGE_KEY = 'trainerly-pokedex-form-filters';
 
-/** Checkbox de formas especiais (Mega, Gmax, Regional...) — por padrao a
- *  Pokedex mostra so formas BASE; aqui o usuario liga quais categorias extras
- *  quer ver. A escolha vai pra URL (?forms=MEGA,GMAX) pra a busca server-side
- *  funcionar, e fica salva em localStorage pra persistir entre visitas. */
+/** Paradox e Ultra Beasts vem habilitados por padrao (pedido explicito —
+ *  sao Pokemon "normais" o suficiente pra fazer parte do competitivo atual,
+ *  diferente de Mega/Gmax/Regional que ficam desligados ate o usuario pedir). */
+const DEFAULT_ACTIVE_FORMS = ['PARADOX', 'ULTRA_BEAST'];
+
+/** Checkbox de formas especiais (Mega, Gmax, Regional...) — a escolha vai
+ *  pra URL (?forms=MEGA,GMAX) pra a busca server-side funcionar, e fica
+ *  salva em localStorage pra persistir entre visitas. */
 export function PokedexFormFilter() {
   const router = useRouter();
   const pathname = usePathname();
@@ -19,24 +23,26 @@ export function PokedexFormFilter() {
   const [hydrated, setHydrated] = useState(false);
 
   const urlForms = searchParams.get('forms');
-  const active = new Set((urlForms ?? '').split(',').filter(Boolean));
+  const active = urlForms !== null
+    ? new Set(urlForms.split(',').filter(Boolean))
+    : new Set(DEFAULT_ACTIVE_FORMS);
 
   // Na primeira carga sem `?forms=` na URL, aplica a preferencia salva (se
-  // houver) — assim a escolha do usuario persiste entre visitas sem precisar
-  // de conta/banco pra isso.
+  // houver e for diferente do padrao) — assim a escolha do usuario persiste
+  // entre visitas sem precisar de conta/banco pra isso.
   useEffect(() => {
     if (hydrated) return;
     setHydrated(true);
     if (urlForms !== null) return;
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved) {
+      if (saved !== null) {
         const params = new URLSearchParams(searchParams.toString());
         params.set('forms', saved);
         router.replace(`${pathname}?${params.toString()}`);
       }
     } catch {
-      // localStorage indisponivel — segue so com BASE
+      // localStorage indisponivel — segue com o padrao (Paradox + Ultra Beasts)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

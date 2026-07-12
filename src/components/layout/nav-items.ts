@@ -13,6 +13,7 @@ import {
   Users,
   MessageCircle,
   Handshake,
+  Newspaper,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -25,6 +26,7 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
+  { label: 'Feed', href: '/feed', icon: Newspaper },
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Team Builder', href: '/team-builder', icon: Swords },
   { label: 'Damage Calculator', href: '/damage-calculator', icon: Calculator },

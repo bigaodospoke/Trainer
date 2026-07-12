@@ -47,6 +47,51 @@ export async function createTeam(formData: FormData) {
   redirect(`/team-builder/${team.id}`);
 }
 
+const updateTeamInfoSchema = z.object({
+  name: z.string().trim().min(1).max(60),
+  description: z.string().trim().max(280).optional().default(''),
+  battleFormat: z.enum(['SINGLES', 'DOUBLES', 'VGC', 'CUSTOM']),
+  generation: z.coerce.number().int().min(1).max(9),
+  formatId: z.string().trim().optional(),
+});
+
+/** Edita nome/descricao/formato do time sem apagar e recriar — os Pokemon
+ *  em si continuam editaveis normalmente pelos slots individuais. */
+export async function updateTeamInfo(teamId: string, formData: FormData) {
+  const session = await auth();
+  if (!session?.user) redirect('/signin');
+
+  const team = await prisma.team.findUnique({ where: { id: teamId } });
+  if (!team || team.ownerId !== session!.user.id) {
+    throw new Error('Time não encontrado.');
+  }
+
+  const parsed = updateTeamInfoSchema.safeParse({
+    name: formData.get('name'),
+    description: formData.get('description') || undefined,
+    battleFormat: formData.get('battleFormat'),
+    generation: formData.get('generation'),
+    formatId: formData.get('formatId') || undefined,
+  });
+
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? 'Dados inválidos.');
+  }
+
+  await prisma.team.update({
+    where: { id: teamId },
+    data: {
+      name: parsed.data.name,
+      description: parsed.data.description || null,
+      battleFormat: parsed.data.battleFormat,
+      generation: parsed.data.generation,
+      formatId: parsed.data.formatId || null,
+    },
+  });
+
+  revalidatePath(`/team-builder/${teamId}`);
+}
+
 export async function deleteTeam(teamId: string) {
   const session = await auth();
   if (!session?.user) redirect('/signin');

@@ -4,6 +4,8 @@ import { useEffect, useMemo } from 'react';
 import { Combobox } from '@/components/team-builder/combobox';
 import { PokemonIcon, ItemIcon } from '@/components/team-builder/sprite-icon';
 import { TypeBadgeRow } from '@/components/ui/type-badge';
+import { formatNatureLabel } from '@/lib/team-builder/natures';
+import { calculateAllStats } from '@/lib/team-builder/stat-calc';
 import {
   SPECIES_OPTIONS,
   ITEM_OPTIONS,
@@ -11,6 +13,7 @@ import {
   TERA_TYPES,
   getSpeciesAbilities,
   getSpeciesTypes,
+  getSpeciesBaseStats,
 } from '@/lib/damage-calculator/dex-data';
 
 export interface StatSpread {
@@ -22,6 +25,12 @@ export interface StatSpread {
   spe: number;
 }
 
+export interface BoostSpread {
+  atk: number; def: number; spa: number; spd: number; spe: number;
+}
+
+export type StatusCondition = '' | 'brn' | 'par' | 'psn' | 'tox' | 'slp' | 'frz';
+
 export interface PokemonConfig {
   species: string;
   level: number;
@@ -31,10 +40,13 @@ export interface PokemonConfig {
   teraType: string;
   evs: StatSpread;
   ivs: StatSpread;
+  boosts: BoostSpread;
+  status: StatusCondition;
 }
 
 export const DEFAULT_EVS: StatSpread = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
 export const DEFAULT_IVS: StatSpread = { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 };
+export const DEFAULT_BOOSTS: BoostSpread = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
 
 export const EMPTY_CONFIG: PokemonConfig = {
   species: '',
@@ -45,6 +57,8 @@ export const EMPTY_CONFIG: PokemonConfig = {
   teraType: '',
   evs: DEFAULT_EVS,
   ivs: DEFAULT_IVS,
+  boosts: DEFAULT_BOOSTS,
+  status: '',
 };
 
 const STAT_LABELS: { key: keyof StatSpread; label: string }[] = [
@@ -54,6 +68,24 @@ const STAT_LABELS: { key: keyof StatSpread; label: string }[] = [
   { key: 'spa', label: 'SpA' },
   { key: 'spd', label: 'SpD' },
   { key: 'spe', label: 'Spe' },
+];
+
+const BOOST_LABELS: { key: keyof BoostSpread; label: string }[] = [
+  { key: 'atk', label: 'Atk' },
+  { key: 'def', label: 'Def' },
+  { key: 'spa', label: 'SpA' },
+  { key: 'spd', label: 'SpD' },
+  { key: 'spe', label: 'Spe' },
+];
+
+const STATUS_OPTIONS: { value: StatusCondition; label: string }[] = [
+  { value: '', label: 'Nenhum' },
+  { value: 'brn', label: 'Queimado (Burn)' },
+  { value: 'par', label: 'Paralisado (Par)' },
+  { value: 'psn', label: 'Envenenado (Psn)' },
+  { value: 'tox', label: 'Envenenado grave (Tox)' },
+  { value: 'slp', label: 'Dormindo (Slp)' },
+  { value: 'frz', label: 'Congelado (Frz)' },
 ];
 
 function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
@@ -84,6 +116,10 @@ export function PokemonConfigPanel({ label, value, onChange }: PokemonConfigPane
   }, [value.species]);
 
   const evTotal = Object.values(value.evs).reduce((s, v) => s + v, 0);
+  const baseStats = useMemo(() => getSpeciesBaseStats(value.species), [value.species]);
+  const finalStats = baseStats
+    ? calculateAllStats(baseStats, value.ivs, value.evs, value.level, value.nature)
+    : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -121,7 +157,7 @@ export function PokemonConfigPanel({ label, value, onChange }: PokemonConfigPane
           <Select value={value.nature} onChange={(e) => onChange({ ...value, nature: e.target.value })}>
             {NATURES.map((n) => (
               <option key={n} value={n}>
-                {n}
+                {formatNatureLabel(n)}
               </option>
             ))}
           </Select>
@@ -155,6 +191,37 @@ export function PokemonConfigPanel({ label, value, onChange }: PokemonConfigPane
       </div>
 
       <div>
+        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-dim">Status</label>
+        <Select value={value.status} onChange={(e) => onChange({ ...value, status: e.target.value as StatusCondition })}>
+          {STATUS_OPTIONS.map((s) => (
+            <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
+        </Select>
+      </div>
+
+      <div>
+        <div className="mb-1.5 flex items-center justify-between">
+          <label className="text-xs font-medium uppercase tracking-wide text-ink-dim">Stat Boosts</label>
+          <span className="text-[10px] text-ink-dim">Dragon Dance, Intimidate, etc.</span>
+        </div>
+        <div className="grid grid-cols-5 gap-2">
+          {BOOST_LABELS.map(({ key, label: statLabel }) => (
+            <div key={key}>
+              <label className="mb-1 block text-[10px] text-ink-dim">{statLabel}</label>
+              <Select
+                value={value.boosts[key]}
+                onChange={(e) => onChange({ ...value, boosts: { ...value.boosts, [key]: Number(e.target.value) } })}
+              >
+                {Array.from({ length: 13 }, (_, i) => 6 - i).map((n) => (
+                  <option key={n} value={n}>{n > 0 ? `+${n}` : n}</option>
+                ))}
+              </Select>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
         <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-dim">Item</label>
         <Combobox
           name={`${label}-item`}
@@ -171,8 +238,8 @@ export function PokemonConfigPanel({ label, value, onChange }: PokemonConfigPane
       <div>
         <div className="mb-1.5 flex items-center justify-between">
           <label className="text-xs font-medium uppercase tracking-wide text-ink-dim">EVs</label>
-          <span className={`font-mono text-xs ${evTotal > 508 ? 'text-danger' : 'text-ink-muted'}`}>
-            {evTotal} / 508
+          <span className={`font-mono text-xs ${evTotal > 510 ? 'text-danger' : 'text-ink-muted'}`}>
+            EVs usados: {evTotal} / 510
           </span>
         </div>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -185,7 +252,12 @@ export function PokemonConfigPanel({ label, value, onChange }: PokemonConfigPane
                 max={252}
                 step={4}
                 value={value.evs[key]}
-                onChange={(e) => onChange({ ...value, evs: { ...value.evs, [key]: Number(e.target.value) || 0 } })}
+                onChange={(e) => {
+                  const raw = Math.max(0, Math.min(252, Number(e.target.value) || 0));
+                  const otherTotal = evTotal - value.evs[key];
+                  const maxAllowed = Math.max(0, Math.min(252, 510 - otherTotal));
+                  onChange({ ...value, evs: { ...value.evs, [key]: Math.min(raw, maxAllowed) } });
+                }}
                 className="h-9 w-full rounded-lg border border-white/10 bg-void-surface/80 px-2 text-center text-sm text-ink-primary outline-none focus:border-purple-neon/50 focus:ring-2 focus:ring-purple-neon/20"
               />
             </div>
@@ -211,6 +283,20 @@ export function PokemonConfigPanel({ label, value, onChange }: PokemonConfigPane
           ))}
         </div>
       </details>
+
+      {finalStats && (
+        <div>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-dim">Stats finais (Lv.{value.level})</p>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+            {STAT_LABELS.map(({ key, label: statLabel }) => (
+              <div key={key} className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-center">
+                <p className="text-[10px] text-ink-dim">{statLabel}</p>
+                <p className="font-mono text-sm text-ink-primary">{finalStats[key]}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

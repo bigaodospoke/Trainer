@@ -85,6 +85,15 @@ export function getSpeciesIcon(speciesName: string): IconRef {
   return pokemonIcon(speciesName);
 }
 
+export function getSpeciesBaseStats(speciesName: string) {
+  const species = gen9.species.get(speciesName);
+  if (!species) return null;
+  return {
+    hp: species.baseStats.hp, atk: species.baseStats.atk, def: species.baseStats.def,
+    spa: species.baseStats.spa, spd: species.baseStats.spd, spe: species.baseStats.spe,
+  };
+}
+
 export const WEATHER_OPTIONS = ['None', 'Sun', 'Rain', 'Sand', 'Snow'] as const;
 export const TERRAIN_OPTIONS = ['None', 'Electric', 'Grassy', 'Misty', 'Psychic'] as const;
 export const NATURES = [

@@ -9,15 +9,15 @@ import {
   getSpeciesById,
   getLearnableMoves,
 } from '@/lib/team-builder/queries';
-import { NATURES, TERA_TYPES } from '@/lib/team-builder/constants';
+import { TERA_TYPES } from '@/lib/team-builder/constants';
+import { calculateStat } from '@/lib/team-builder/stat-calc';
+import { getAvailableMonths, getSpeciesBuildComponents } from '@/lib/meta-analyzer/queries';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { EvInputs } from '@/components/team-builder/ev-inputs';
-import { IvInputs } from '@/components/team-builder/iv-inputs';
-import { SearchableSelect } from '@/components/team-builder/searchable-select';
+import { StatsEditor } from '@/components/team-builder/stats-editor';
 import { Combobox } from '@/components/team-builder/combobox';
-import { PokemonIcon, ItemIcon } from '@/components/team-builder/sprite-icon';
+import { CompetitiveFields } from '@/components/team-builder/competitive-fields';
 import { SpeciesPreview } from '@/components/team-builder/species-preview';
 import { setSlotSpecies, saveSlotSet } from './actions';
 
@@ -56,7 +56,13 @@ export default async function SlotPage({ params, searchParams }: SlotPageProps) 
       {showSpeciesPicker ? (
         <SpeciesPicker teamId={teamId} position={position} />
       ) : (
-        <SetEditor teamId={teamId} position={position} generation={team.generation} slotId={slot!.id} />
+        <SetEditor
+          teamId={teamId}
+          position={position}
+          generation={team.generation}
+          formatId={team.formatId}
+          slotId={slot!.id}
+        />
       )}
     </div>
   );
@@ -96,11 +102,13 @@ async function SetEditor({
   teamId,
   position,
   generation,
+  formatId,
   slotId,
 }: {
   teamId: string;
   position: number;
   generation: number;
+  formatId: string | null;
   slotId: string;
 }) {
   const slot = await prisma.teamSlot.findUnique({
@@ -128,6 +136,41 @@ async function SetEditor({
     value: item.name,
     icon: { iconSheetUrl: item.iconSheetUrl, iconTop: item.iconTop, iconLeft: item.iconLeft },
   }));
+
+  const abilityOptions = species.abilities.map((pa: (typeof species.abilities)[number]) => ({
+    value: pa.abilityId,
+    label: pa.ability.name,
+    hint: pa.isHidden ? 'Hidden' : undefined,
+  }));
+  const teraOptions = TERA_TYPES.map((t) => ({ value: t, label: t }));
+
+  // Competitive Snapshot + Componentes mais usados — dados reais do chaos
+  // report da Smogon (npm run sync:smogon). Cai pro tier "gen9ou" quando o
+  // time nao tem um Format especifico selecionado, mesmo fallback ja usado
+  // na Pokedex pra "parceiros comuns".
+  const format = formatId
+    ? await prisma.format.findUnique({ where: { id: formatId } })
+    : await prisma.format.findUnique({ where: { slug: 'gen9ou' } });
+
+  let snapshot = null;
+  let buildComponents = null;
+  if (format) {
+    const months = await getAvailableMonths(format.id);
+    const latestMonth = months[0];
+    if (latestMonth) {
+      const [tierAssignment, usageRow, components] = await Promise.all([
+        prisma.tierAssignment.findFirst({ where: { speciesId: species.id, formatId: format.id } }),
+        prisma.usageStat.findFirst({ where: { speciesId: species.id, formatId: format.id, month: latestMonth, kind: 'SPECIES' } }),
+        getSpeciesBuildComponents(species.id, format.id, latestMonth),
+      ]);
+      snapshot = {
+        tier: tierAssignment?.tier ?? null,
+        usagePercent: usageRow?.usagePercent ?? null,
+        speedTierLv100: calculateStat('spe', species.baseSpe, 31, 252, 100, 'Hardy'),
+      };
+      buildComponents = components;
+    }
+  }
 
   return (
     <GlassCard padding="lg" className="max-w-3xl">
@@ -167,98 +210,34 @@ async function SetEditor({
               <option value="N">Sem gênero</option>
             </Select>
           </div>
-          <div>
-            <label htmlFor="level" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-dim">
-              Level
-            </label>
-            <Input id="level" name="level" type="number" min={1} max={100} defaultValue={slot.level} />
-          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div>
-            <label htmlFor="abilityId" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-dim">
-              Ability
-            </label>
-            <SearchableSelect
-              name="abilityId"
-              defaultValue={slot.abilityId ?? ''}
-              allowEmpty
-              placeholder="Escolher ability..."
-              options={species.abilities.map((pa: (typeof species.abilities)[number]) => ({
-                value: pa.abilityId,
-                label: pa.ability.name,
-                hint: pa.isHidden ? 'Hidden' : undefined,
-              }))}
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-dim">Item</label>
-            <Combobox
-              name="itemName"
-              options={itemOptions}
-              defaultValue={slot.item?.name ?? ''}
-              placeholder="ex.: Choice Scarf"
-              allowEmpty
-              iconKind="item"
-              previewSize={36}
-            />
-          </div>
-          <div>
-            <label htmlFor="natureName" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-dim">
-              Nature
-            </label>
-            <SearchableSelect
-              name="natureName"
-              defaultValue={slot.natureName}
-              placeholder="Escolher nature..."
-              options={NATURES.map((n) => ({ value: n, label: n }))}
-            />
-          </div>
-        </div>
-
-        <div className="max-w-xs">
-          <label htmlFor="teraType" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-dim">
-            Tera Type
-          </label>
-          <SearchableSelect
-            name="teraType"
-            defaultValue={slot.teraType ?? ''}
-            allowEmpty
-            placeholder="Escolher tera type..."
-            options={TERA_TYPES.map((t) => ({ value: t, label: t }))}
-          />
-        </div>
-
-        <EvInputs
-          defaults={{ hp: slot.evHp, atk: slot.evAtk, def: slot.evDef, spa: slot.evSpa, spd: slot.evSpd, spe: slot.evSpe }}
+        <CompetitiveFields
+          defaultAbilityId={slot.abilityId ?? ''}
+          defaultItemName={slot.item?.name ?? ''}
+          defaultTeraType={slot.teraType ?? ''}
+          defaultMoves={[moveAt(1), moveAt(2), moveAt(3), moveAt(4)]}
+          abilityOptions={abilityOptions}
+          itemOptions={itemOptions}
+          teraOptions={teraOptions}
+          moveOptions={moveOptions}
+          snapshot={snapshot}
+          buildComponents={buildComponents}
         />
 
-        <IvInputs
-          defaults={{ hp: slot.ivHp, atk: slot.ivAtk, def: slot.ivDef, spa: slot.ivSpa, spd: slot.ivSpd, spe: slot.ivSpe }}
+        <StatsEditor
+          baseStats={{ hp: species.baseHp, atk: species.baseAtk, def: species.baseDef, spa: species.baseSpa, spd: species.baseSpd, spe: species.baseSpe }}
+          defaultLevel={slot.level}
+          defaultNature={slot.natureName}
+          defaultEvs={{ hp: slot.evHp, atk: slot.evAtk, def: slot.evDef, spa: slot.evSpa, spd: slot.evSpd, spe: slot.evSpe }}
+          defaultIvs={{ hp: slot.ivHp, atk: slot.ivAtk, def: slot.ivDef, spa: slot.ivSpa, spd: slot.ivSpd, spe: slot.ivSpe }}
         />
 
-        <div>
-          <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-ink-dim">Golpes</label>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {[1, 2, 3, 4].map((n) => (
-              <Combobox
-                key={n}
-                name={`move${n}`}
-                iconKind="move"
-                options={moveOptions}
-                defaultValue={moveAt(n)}
-                placeholder="ex.: Dragon Claw"
-                allowEmpty
-              />
-            ))}
-          </div>
-          {learnableMoves.length === 0 && (
-            <p className="mt-2 text-xs text-warning">
-              Nenhum golpe encontrado para esta espécie/geração — rode npm run sync:showdown.
-            </p>
-          )}
-        </div>
+        {learnableMoves.length === 0 && (
+          <p className="-mt-4 text-xs text-warning">
+            Nenhum golpe encontrado para esta espécie/geração — rode npm run sync:showdown.
+          </p>
+        )}
 
         <Button type="submit" size="lg">
           Salvar set

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ShieldCheck, Users, Flag, RefreshCw, Heart, Tags } from 'lucide-react';
+import { ShieldCheck, Users, Flag, RefreshCw, Heart, Tags, Handshake } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { GlassCard } from '@/components/ui/glass-card';
@@ -59,6 +59,15 @@ export default async function AdminPage() {
             <div className="flex-1">
               <p className="text-sm font-medium text-ink-primary">Tags de usuário</p>
               <p className="text-xs text-ink-muted">Marcar usuários como Apoiador, Dev, Moderador, etc.</p>
+            </div>
+          </GlassCard>
+        </Link>
+        <Link href="/admin/partners">
+          <GlassCard padding="md" hover className="flex h-full items-center gap-3">
+            <Handshake className="h-5 w-5 text-purple-neon" strokeWidth={1.75} />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-ink-primary">Parceiros Cobblemon</p>
+              <p className="text-xs text-ink-muted">Aprovar, rejeitar e definir o tier dos servidores parceiros</p>
             </div>
           </GlassCard>
         </Link>

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Avatar } from '@/components/ui/avatar';
 import { formatCount } from '@/lib/utils';
+import { PartnerSpotlight } from '@/components/partners/partner-spotlight';
 
 export default async function RankingsPage() {
   const [popularUsers, mostFollowed, mostLikedTeams, mostDownloadedTeams] = await Promise.all([
@@ -30,6 +31,8 @@ export default async function RankingsPage() {
         <Trophy className="h-6 w-6 text-purple-neon" strokeWidth={1.75} />
         <h1 className="font-display text-2xl font-semibold text-ink-primary">Rankings</h1>
       </div>
+
+      <PartnerSpotlight />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <RankCard title="Usuários mais populares" icon={Heart}>

@@ -9,6 +9,7 @@ import { Swords, Heart, Download, Users, Plus, Check, X, Activity } from 'lucide
 import Link from 'next/link';
 import Image from 'next/image';
 import { respondFriendRequest } from '../profile/[username]/actions';
+import { PartnerSpotlight } from '@/components/partners/partner-spotlight';
 
 const ACTIVITY_LABELS: Record<string, (payload: Record<string, unknown>) => string> = {
   TEAM_PUBLISHED: (p) => `publicou o time "${p.teamName}"`,
@@ -70,6 +71,8 @@ export default async function DashboardPage() {
         </h1>
         <p className="text-sm text-ink-muted">Aqui esta o resumo da sua conta no Trainerly.</p>
       </div>
+
+      <PartnerSpotlight />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((stat) => (

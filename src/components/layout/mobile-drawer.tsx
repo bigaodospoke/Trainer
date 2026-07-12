@@ -5,19 +5,20 @@ import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { NAV_ITEMS, SECONDARY_NAV_ITEMS, ADMIN_NAV_ITEM } from './nav-items';
+import { NAV_ITEMS, SECONDARY_NAV_ITEMS, ADMIN_NAV_ITEM, PARTNER_PANEL_NAV_ITEM } from './nav-items';
 
 interface MobileDrawerProps {
   open: boolean;
   onClose: () => void;
   username: string;
   isAdmin?: boolean;
+  isPartner?: boolean;
 }
 
 /** Menu de navegacao em drawer para telas < lg — substitui a Sidebar, que
  *  fica oculta abaixo desse breakpoint. Fecha ao navegar, ao clicar no
  *  overlay ou pressionar Escape. */
-export function MobileDrawer({ open, onClose, username, isAdmin }: MobileDrawerProps) {
+export function MobileDrawer({ open, onClose, username, isAdmin, isPartner }: MobileDrawerProps) {
   const pathname = usePathname();
 
   return (
@@ -92,6 +93,16 @@ export function MobileDrawer({ open, onClose, username, isAdmin }: MobileDrawerP
                   {item.label}
                 </Link>
               ))}
+              {isPartner && (
+                <Link
+                  href={PARTNER_PANEL_NAV_ITEM.href}
+                  onClick={onClose}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition-colors hover:text-ink-primary"
+                >
+                  <PARTNER_PANEL_NAV_ITEM.icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                  {PARTNER_PANEL_NAV_ITEM.label}
+                </Link>
+              )}
               {isAdmin && (
                 <Link
                   href={ADMIN_NAV_ITEM.href}

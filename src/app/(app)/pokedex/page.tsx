@@ -9,6 +9,7 @@ import { PokemonIcon } from '@/components/team-builder/sprite-icon';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PokedexFormFilter } from '@/components/pokedex/form-filter';
 import { FORM_KIND_LABELS } from '@/lib/pokedex/form-kinds';
+import { PartnerSpotlight } from '@/components/partners/partner-spotlight';
 
 const TYPES = [
   'NORMAL', 'FIRE', 'WATER', 'ELECTRIC', 'GRASS', 'ICE', 'FIGHTING', 'POISON',
@@ -44,6 +45,8 @@ export default async function PokedexPage({ searchParams }: PokedexPageProps) {
           <p className="text-sm text-ink-muted">{total} espécies sincronizadas</p>
         </div>
       </div>
+
+      <PartnerSpotlight />
 
       <GlassCard padding="md" className="relative z-30">
         <form className="grid grid-cols-1 gap-3 sm:grid-cols-4">

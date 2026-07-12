@@ -10,7 +10,16 @@ import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { addUserTag, removeUserTag } from '../users-actions';
 
-const SUGGESTED_TAGS = ['Apoiador', 'Dev', 'Moderador', 'Beta Tester', 'Parceiro'];
+const SUGGESTED_TAGS = [
+  'Apoiador',
+  'Dev',
+  'Moderador',
+  'Beta Tester',
+  'Parceiro',
+  'Parceiro Plus',
+  'Parceiro Pro',
+  'Parceiro Elite',
+];
 
 interface AdminUsersPageProps {
   searchParams: Promise<{ q?: string }>;

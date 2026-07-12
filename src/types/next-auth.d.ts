@@ -12,6 +12,7 @@ declare module 'next-auth' {
       username: string;
       role: UserRole;
       avatarUrl: string | null;
+      tags: string[];
     } & DefaultSession['user'];
   }
 }
@@ -28,5 +29,6 @@ declare module '@auth/core/adapters' {
     username: string;
     role: UserRole;
     avatarUrl: string | null;
+    tags: string[];
   }
 }

@@ -54,6 +54,7 @@ model User {
   conversationsAsB       Conversation[]     @relation("ConversationUserB")
   sentMessages           Message[]          @relation("MessageSender")
   messageReactions       MessageReaction[]
+  partnerServers         PartnerServer[]
 
   @@index([username])
 }
@@ -151,6 +152,8 @@ model PokemonSpecies {
   tiers                  TierAssignment[]
   usageStats             UsageStat[]
   favoritedBy            User[]             @relation("FavoritePokemon")
+  partnerTierEntries     PartnerTierEntry[]
+  partnerBanEntries      PartnerBanEntry[]
 
   @@index([nationalDex])
   @@index([slug])
@@ -310,6 +313,11 @@ model Team {
   /// mudanca); FRIENDS e PRIVATE mantem isPublic=false, e FRIENDS libera acesso
   /// de leitura extra pra amigos do dono (ver library/[teamId] e o chat).
   visibility     TeamVisibility @default(PRIVATE)
+  /// Quando setado, este time aparece na secao "Times recomendados" da
+  /// pagina publica do parceiro — reaproveita 100% o Team/TeamSlot/
+  /// TeamSlotMove existentes (edicao, export Showdown, etc.), so marca a
+  /// origem.
+  partnerId      String?
   showdownExport String?
   likesCount     Int          @default(0)
   downloadsCount Int          @default(0)
@@ -321,11 +329,13 @@ model Team {
   folder         TeamFolder?  @relation(fields: [folderId], references: [id])
   format         Format?      @relation(fields: [formatId], references: [id])
   owner          User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  partner        PartnerServer? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   slots          TeamSlot[]
   sharedInMessages Message[]
 
   @@index([ownerId])
   @@index([isPublic, battleFormat])
+  @@index([partnerId])
 }
 
 model TeamSlot {
@@ -767,4 +777,189 @@ model MessageReaction {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, userId, emoji])
+}
+
+// -----------------------------------------------------------------------------
+// Parceiros de Servidores Cobblemon
+// -----------------------------------------------------------------------------
+// Acesso ao painel (/painel-parceiro) e definido pela tag do usuario (User.tags
+// contem "Parceiro"/"Parceiro Plus"/"Parceiro Pro"/"Parceiro Elite" — reusa o
+// sistema de tags ja existente em vez de um model de "role" separado). O
+// PartnerServer.tier abaixo e o que controla os beneficios de destaque
+// (rotativo em Home/Biblioteca/Rankings/Pokedex — ver lib/partners/spotlight.ts)
+// e pode divergir temporariamente da tag do usuario (ex.: admin baixa o tier
+// sem remover a tag ainda). PartnerServer.status controla a aprovacao manual
+// pelo admin antes da pagina publica existir.
+
+enum PartnerTier {
+  PARCEIRO
+  PARCEIRO_PLUS
+  PARCEIRO_PRO
+  PARCEIRO_ELITE
+}
+
+enum PartnerStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum PartnerServerStatus {
+  ONLINE
+  OFFLINE
+  COMING_SOON
+}
+
+enum PartnerCategory {
+  COMPETITIVE
+  SURVIVAL
+  RPG
+  PIXELMON
+  COBBLEMON
+  MODPACK
+}
+
+enum PartnerTierRank {
+  S
+  A
+  B
+  C
+  D
+}
+
+enum PartnerAnalyticsEventType {
+  PAGE_VIEW
+  DISCORD_CLICK
+  WEBSITE_CLICK
+  STORE_CLICK
+  BANNER_CLICK
+  EVENT_CLICK
+}
+
+model PartnerServer {
+  id                  String               @id @default(cuid())
+  ownerId             String               @unique
+  slug                String               @unique
+  name                String
+  description         String               @db.VarChar(600)
+  logoUrl             String?
+  bannerUrl           String?
+  serverIp            String?
+  minecraftVersion    String?
+  modpack             String?
+  region              String?
+  serverStatus        PartnerServerStatus  @default(ONLINE)
+  categories          PartnerCategory[]
+  tier                PartnerTier          @default(PARCEIRO)
+  status              PartnerStatus        @default(PENDING)
+  rejectionReason     String?
+
+  discordUrl          String?
+  websiteUrl          String?
+  storeUrl            String?
+  instagramUrl        String?
+  youtubeUrl          String?
+  tiktokUrl           String?
+
+  specialRules        String?              @db.VarChar(3000)
+
+  /// Campos prontos pra integracao futura com Stripe — nao usados ainda
+  /// (nenhuma chamada a API de pagamento existe hoje), so reservam o espaco
+  /// pra nao exigir migration quando o checkout for implementado.
+  stripeCustomerId     String?             @unique
+  stripeSubscriptionId String?             @unique
+  subscriptionStatus   String?
+
+  createdAt           DateTime             @default(now())
+  updatedAt            DateTime            @updatedAt
+  approvedAt           DateTime?
+
+  owner               User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  images              PartnerGalleryImage[]
+  events              PartnerEvent[]
+  news                PartnerNews[]
+  tierEntries         PartnerTierEntry[]
+  banEntries          PartnerBanEntry[]
+  teams               Team[]
+  analyticsEvents     PartnerAnalyticsEvent[]
+
+  @@index([status, tier])
+}
+
+model PartnerGalleryImage {
+  id        String        @id @default(cuid())
+  partnerId String
+  imageUrl  String
+  caption   String?
+  position  Int           @default(0)
+  createdAt DateTime      @default(now())
+  partner   PartnerServer @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId])
+}
+
+model PartnerEvent {
+  id            String        @id @default(cuid())
+  partnerId     String
+  title         String
+  description   String        @db.VarChar(1000)
+  eventDate     DateTime
+  coverImageUrl String?
+  link          String?
+  createdAt     DateTime      @default(now())
+  partner       PartnerServer @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId, eventDate])
+}
+
+model PartnerNews {
+  id            String        @id @default(cuid())
+  partnerId     String
+  title         String
+  content       String        @db.VarChar(5000)
+  coverImageUrl String?
+  publishedAt   DateTime      @default(now())
+  partner       PartnerServer @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId, publishedAt])
+}
+
+model PartnerTierEntry {
+  id        String          @id @default(cuid())
+  partnerId String
+  speciesId String
+  rank      PartnerTierRank
+  partner   PartnerServer   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  species   PokemonSpecies  @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, speciesId])
+}
+
+model PartnerBanEntry {
+  id        String         @id @default(cuid())
+  partnerId String
+  speciesId String
+  reason    String?
+  partner   PartnerServer  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  species   PokemonSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, speciesId])
+}
+
+/// Log de eventos pra metricas do painel (pageview + cliques). Consultado via
+/// groupBy pra montar as contagens do dashboard — sem pipeline de analytics
+/// separado, o volume esperado (por parceiro) nao justifica isso ainda.
+/// visitorHash e um hash nao-reversivel de IP+User-Agent (nunca guarda IP
+/// cru) usado so pra estimar visitantes unicos.
+model PartnerAnalyticsEvent {
+  id          String                    @id @default(cuid())
+  partnerId   String
+  type        PartnerAnalyticsEventType
+  refId       String?
+  visitorHash String?
+  createdAt   DateTime                  @default(now())
+  partner     PartnerServer             @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId, type, createdAt])
 }

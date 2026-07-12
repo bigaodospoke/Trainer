@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Users,
   MessageCircle,
+  Handshake,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -32,6 +33,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Biblioteca de Times', href: '/library', icon: Library },
   { label: 'Rankings', href: '/rankings', icon: Trophy },
   { label: 'Apoiadores', href: '/apoiadores', icon: Heart },
+  { label: 'Parceiros', href: '/partners', icon: Handshake },
   { label: 'Amigos', href: '/amigos', icon: Users },
   { label: 'Mensagens', href: '/mensagens', icon: MessageCircle },
 ];
@@ -51,4 +53,10 @@ export const ADMIN_NAV_ITEM: SecondaryNavItem = {
   label: 'Administracao',
   href: '/admin',
   icon: ShieldCheck,
+};
+
+export const PARTNER_PANEL_NAV_ITEM: SecondaryNavItem = {
+  label: 'Painel de Parceiro',
+  href: '/painel-parceiro',
+  icon: Handshake,
 };

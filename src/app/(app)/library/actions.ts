@@ -63,8 +63,8 @@ export async function postComment(teamId: string, formData: FormData) {
 }
 
 export async function registerDownload(teamId: string) {
-  const team = await prisma.team.findUnique({ where: { id: teamId }, select: { isPublic: true, ownerId: true } });
-  if (!team || !team.isPublic) return;
+  const team = await prisma.team.findUnique({ where: { id: teamId }, select: { isPublic: true, ownerId: true, partnerId: true } });
+  if (!team || (!team.isPublic && !team.partnerId)) return;
 
   await prisma.$transaction([
     prisma.team.update({ where: { id: teamId }, data: { downloadsCount: { increment: 1 } } }),

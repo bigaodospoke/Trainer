@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PartnerSpotlight } from '@/components/partners/partner-spotlight';
 
 interface LibraryPageProps {
   searchParams: Promise<{ q?: string; format?: string; gen?: string; sort?: string; page?: string }>;
@@ -35,6 +36,8 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
           <p className="text-sm text-ink-muted">{total} times públicos</p>
         </div>
       </div>
+
+      <PartnerSpotlight />
 
       <GlassCard padding="md">
         <form className="grid grid-cols-1 gap-3 sm:grid-cols-5">

@@ -10,6 +10,7 @@ import { PresenceHeartbeat } from './presence-heartbeat';
 interface AppShellProps {
   username: string;
   isAdmin?: boolean;
+  isPartner?: boolean;
   name: string;
   avatarUrl: string | null;
   children: React.ReactNode;
@@ -19,7 +20,7 @@ interface AppShellProps {
  *  mobile equivalente abaixo disso, controlados pelo mesmo estado — a
  *  Sidebar em si nao tem substituto quando escondida, entao o drawer existe
  *  para nunca deixar a navegacao inacessivel em telas pequenas. */
-export function AppShell({ username, isAdmin, name, avatarUrl, children }: AppShellProps) {
+export function AppShell({ username, isAdmin, isPartner, name, avatarUrl, children }: AppShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const pathname = usePathname();
 
@@ -30,12 +31,13 @@ export function AppShell({ username, isAdmin, name, avatarUrl, children }: AppSh
   return (
     <div className="flex min-h-screen">
       <PresenceHeartbeat />
-      <Sidebar username={username} isAdmin={isAdmin} />
+      <Sidebar username={username} isAdmin={isAdmin} isPartner={isPartner} />
       <MobileDrawer
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
         username={username}
         isAdmin={isAdmin}
+        isPartner={isPartner}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">

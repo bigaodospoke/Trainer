@@ -4,14 +4,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { NAV_ITEMS, SECONDARY_NAV_ITEMS, ADMIN_NAV_ITEM } from './nav-items';
+import { NAV_ITEMS, SECONDARY_NAV_ITEMS, ADMIN_NAV_ITEM, PARTNER_PANEL_NAV_ITEM } from './nav-items';
 
 interface SidebarProps {
   username: string;
   isAdmin?: boolean;
+  isPartner?: boolean;
 }
 
-export function Sidebar({ username, isAdmin }: SidebarProps) {
+export function Sidebar({ username, isAdmin, isPartner }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -72,6 +73,15 @@ export function Sidebar({ username, isAdmin }: SidebarProps) {
             {item.label}
           </Link>
         ))}
+        {isPartner && (
+          <Link
+            href={PARTNER_PANEL_NAV_ITEM.href}
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition-colors hover:text-ink-primary"
+          >
+            <PARTNER_PANEL_NAV_ITEM.icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+            {PARTNER_PANEL_NAV_ITEM.label}
+          </Link>
+        )}
         {isAdmin && (
           <Link
             href={ADMIN_NAV_ITEM.href}

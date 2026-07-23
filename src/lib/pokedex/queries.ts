@@ -12,7 +12,15 @@ const PAGE_SIZE = 60;
 export interface PokedexFilters {
   q?: string;
   type?: string;
-  generation?: number;
+  /** Multi-selecao de geracoes (1-9) — substitui o antigo filtro de gen
+   *  unica; array vazio/ausente = todas as geracoes. */
+  generations?: number[];
+  /** Tier competitivo (OU/UU/Ubers/...), formato gen9ou por padrao — ver
+   *  busca universal (@/lib/pokedex/universal-search). */
+  tier?: string;
+  /** Especies que aprendem este golpe / tem esta ability — ver busca universal. */
+  moveId?: string;
+  abilityId?: string;
   page?: number;
   /** Formas especiais a incluir alem de BASE (Mega, Gmax, Regional...) — ver
    *  FORM_KIND_META em @/lib/pokedex/form-kinds. BASE sempre entra, entao a
@@ -28,7 +36,12 @@ export async function searchSpecies(filters: PokedexFilters) {
     AND: [
       filters.q ? { name: { contains: filters.q, mode: 'insensitive' as const } } : {},
       filters.type ? { types: { has: filters.type as never } } : {},
-      filters.generation ? { generationIntroduced: filters.generation } : {},
+      filters.generations && filters.generations.length > 0
+        ? { generationIntroduced: { in: filters.generations } }
+        : {},
+      filters.tier ? { tiers: { some: { tier: filters.tier as never, format: { slug: 'gen9ou' } } } } : {},
+      filters.moveId ? { learnset: { some: { moveId: filters.moveId } } } : {},
+      filters.abilityId ? { abilities: { some: { abilityId: filters.abilityId } } } : {},
       { formKind: { in: formKindsIn as never[] } },
     ],
   };

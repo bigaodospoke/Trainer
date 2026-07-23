@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { NAV_ITEMS, SECONDARY_NAV_ITEMS, ADMIN_NAV_ITEM, PARTNER_PANEL_NAV_ITEM } from './nav-items';
+import { useUiSound } from '@/lib/audio/use-ui-sound';
 
 interface SidebarProps {
   username: string;
@@ -14,6 +15,8 @@ interface SidebarProps {
 
 export function Sidebar({ username, isAdmin, isPartner }: SidebarProps) {
   const pathname = usePathname();
+  const { play } = useUiSound();
+  const onNav = () => play('nav');
 
   return (
     <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-white/5 bg-void-surface/60 px-3 py-5 lg:flex">
@@ -40,6 +43,7 @@ export function Sidebar({ username, isAdmin, isPartner }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNav}
               className={cn(
                 'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors',
                 isActive ? 'text-ink-primary' : 'text-ink-muted hover:text-ink-primary'
@@ -67,6 +71,7 @@ export function Sidebar({ username, isAdmin, isPartner }: SidebarProps) {
           <Link
             key={item.href}
             href={item.href}
+            onClick={onNav}
             className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition-colors hover:text-ink-primary"
           >
             <item.icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
@@ -76,6 +81,7 @@ export function Sidebar({ username, isAdmin, isPartner }: SidebarProps) {
         {isPartner && (
           <Link
             href={PARTNER_PANEL_NAV_ITEM.href}
+            onClick={onNav}
             className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition-colors hover:text-ink-primary"
           >
             <PARTNER_PANEL_NAV_ITEM.icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
@@ -85,6 +91,7 @@ export function Sidebar({ username, isAdmin, isPartner }: SidebarProps) {
         {isAdmin && (
           <Link
             href={ADMIN_NAV_ITEM.href}
+            onClick={onNav}
             className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition-colors hover:text-ink-primary"
           >
             <ADMIN_NAV_ITEM.icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
@@ -93,6 +100,7 @@ export function Sidebar({ username, isAdmin, isPartner }: SidebarProps) {
         )}
         <Link
           href={`/profile/${username}`}
+          onClick={onNav}
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition-colors hover:text-ink-primary"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-success" />

@@ -7,7 +7,7 @@ import { toPng, toBlob } from 'html-to-image';
 import { Button } from '@/components/ui/button';
 import { TypeBadge } from '@/components/ui/type-badge';
 import { MoveCategoryIcon } from '@/components/ui/move-category-icon';
-import { formatNatureLabel } from '@/lib/team-builder/natures';
+import { NatureBadge } from '@/components/ui/nature-badge';
 import { GENDER_SYMBOL } from '@/lib/team-builder/format-spread';
 
 export interface HofSlotData {
@@ -154,7 +154,7 @@ function HofSlot({ slot, index }: { slot: HofSlotData; index: number }) {
       <div className="mb-2 flex flex-col gap-0.5 text-[10px] text-white/70">
         <p>Item: <span className="text-white">{slot.item?.name ?? '—'}</span></p>
         <p>Ability: <span className="text-white">{slot.ability?.name ?? '—'}</span></p>
-        <p>Nature: <span className="text-white">{formatNatureLabel(slot.natureName)}</span></p>
+        <p className="flex items-center gap-1">Nature: <NatureBadge nature={slot.natureName} size="sm" /></p>
         {slot.teraType && (
           <span className="mt-0.5 flex items-center gap-1">
             Tera: <TypeBadge type={slot.teraType.charAt(0) + slot.teraType.slice(1).toLowerCase()} size="sm" />

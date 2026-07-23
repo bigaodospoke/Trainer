@@ -14,6 +14,12 @@ import { FavoriteButton } from '@/components/ui/favorite-button';
 import { isFavorited } from '@/lib/favorites/actions';
 import { formatEvoCondition } from '@/lib/pokedex/evo-condition';
 import { FORM_KIND_LABELS } from '@/lib/pokedex/form-kinds';
+import { TypeAmbientBackground } from '@/components/pokedex/type-ambient-background';
+import { prisma } from '@/lib/prisma';
+import { getAvailableMonths, getSpeciesBuildComponents } from '@/lib/meta-analyzer/queries';
+import { buildMostUsedSet } from '@/lib/pokedex/builds';
+import { UseThisBuildButton } from '@/components/pokedex/use-this-build-button';
+import { RecordView } from '@/components/layout/record-view';
 
 interface PokedexDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -43,6 +49,19 @@ export default async function PokedexDetailPage({ params }: PokedexDetailPagePro
 
   const effectiveness = computeTypeEffectiveness(species.types.map(toTitleCase));
 
+  // Recommended Builds — mesma fonte de dados do painel "Componentes mais
+  // usados" do Team Builder (chaos report da Smogon), so que apresentada
+  // como uma build pronta pra aplicar direto no Team Builder.
+  const gen9ou = await prisma.format.findUnique({ where: { slug: 'gen9ou' } });
+  let recommendedBuild = null;
+  if (gen9ou) {
+    const months = await getAvailableMonths(gen9ou.id);
+    if (months[0]) {
+      const components = await getSpeciesBuildComponents(species.id, gen9ou.id, months[0]);
+      recommendedBuild = buildMostUsedSet(species.name, components);
+    }
+  }
+
   // Agrupa learnset por metodo, deduplicando por golpe (mantendo a entrada
   // de geracao mais recente — relevante pro nivel exibido em LEVEL_UP).
   const byMethod = new Map<string, Map<string, (typeof species.learnset)[number]>>();
@@ -57,6 +76,9 @@ export default async function PokedexDetailPage({ params }: PokedexDetailPagePro
 
   return (
     <div className="flex flex-col gap-4">
+      <TypeAmbientBackground type={species.types[0] ?? 'Normal'} />
+      <RecordView targetType="POKEMON" targetId={species.id} label={species.name} href={`/pokedex/${species.slug}`} />
+
       <Link href="/pokedex" className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink-primary">
         <ArrowLeft className="h-3.5 w-3.5" />
         Voltar à Pokédex
@@ -217,6 +239,46 @@ export default async function PokedexDetailPage({ params }: PokedexDetailPagePro
             <p className="text-xs text-ink-dim">Sem dados de uso competitivo sincronizados para esta espécie.</p>
           )}
         </div>
+      </Section>
+
+      <Section title="Recommended Builds">
+        {recommendedBuild ? (
+          <div className="rounded-xl border border-purple-neon/20 bg-purple-core/5 p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="rounded-pill border border-purple-neon/30 bg-purple-core/15 px-2.5 py-1 text-xs font-medium text-purple-ice">
+                  {recommendedBuild.tag}
+                </span>
+                <h3 className="font-display text-sm font-semibold text-ink-primary">{recommendedBuild.label}</h3>
+              </div>
+              <UseThisBuildButton build={recommendedBuild} />
+            </div>
+
+            <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <InfoField label="Item" value={recommendedBuild.itemName ?? '—'} />
+              <InfoField label="Ability" value={recommendedBuild.abilityName ?? '—'} />
+              <InfoField label="Tera Type" value={recommendedBuild.teraType ? toTitleCase(recommendedBuild.teraType) : '—'} />
+              <InfoField label="Moves" value={`${recommendedBuild.moveNames.length}/4`} />
+            </div>
+
+            {recommendedBuild.moveNames.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                {recommendedBuild.moveNames.map((m) => (
+                  <span key={m} className="rounded-pill border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-ink-primary">{m}</span>
+                ))}
+              </div>
+            )}
+
+            <div>
+              <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-ink-dim">How To Use</p>
+              <p className="text-sm text-ink-muted">{recommendedBuild.howToUse}</p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-ink-dim">
+            Sem dados de uso suficientes ainda pra recomendar uma build — rode npm run sync:smogon.
+          </p>
+        )}
       </Section>
 
       <Section title="Breeding">

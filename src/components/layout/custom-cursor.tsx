@@ -40,6 +40,11 @@ export function CustomCursor({ species }: { species: CursorSpecies }) {
   }, []);
 
   const color = getTypeInfo(species.types[0] ?? 'Normal').color;
+  // Psyduck e o mascote padrao do Trainerly — ganha um destaque extra de
+  // tamanho em relacao aos demais Pokemon escolhiveis (pedido explicito).
+  const isPsyduck = species.slug === 'psyduck';
+  const spriteSize = isPsyduck ? 66 : 54;
+  const offset = isPsyduck ? 18 : 20;
 
   return (
     <div
@@ -59,10 +64,10 @@ export function CustomCursor({ species }: { species: CursorSpecies }) {
       <img
         src={species.spriteUrl}
         alt=""
-        width={44}
-        height={44}
-        className="absolute left-[20px] top-[16px] drop-shadow-md"
-        style={{ imageRendering: 'pixelated' }}
+        width={spriteSize}
+        height={spriteSize}
+        className="absolute drop-shadow-md"
+        style={{ imageRendering: 'pixelated', left: offset, top: offset }}
       />
     </div>
   );

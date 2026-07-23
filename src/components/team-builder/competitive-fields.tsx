@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { Sparkles, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Sparkles, TrendingUp, Wand2 } from 'lucide-react';
 import { SearchableSelect, type SearchableSelectOption } from './searchable-select';
 import { Combobox, type ComboboxOption } from './combobox';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Badge } from '@/components/ui/badge';
+import { TypeBadge } from '@/components/ui/type-badge';
 import type { BuildComponentRow } from '@/lib/meta-analyzer/queries';
+import { PENDING_BUILD_KEY } from '@/components/pokedex/use-this-build-button';
+import type { RecommendedBuild } from '@/lib/pokedex/builds';
 
 export interface CompetitiveSnapshot {
   tier: string | null;
@@ -22,6 +25,7 @@ export interface SpeciesBuildComponentsData {
 }
 
 interface CompetitiveFieldsProps {
+  speciesName: string;
   defaultAbilityId: string;
   defaultItemName: string;
   defaultTeraType: string;
@@ -41,6 +45,7 @@ interface CompetitiveFieldsProps {
  *  aplicacao troca a `key` do campo, forcando o React a remonta-lo com o
  *  novo `defaultValue` (mais simples e robusto que virar tudo controlado). */
 export function CompetitiveFields({
+  speciesName,
   defaultAbilityId,
   defaultItemName,
   defaultTeraType,
@@ -59,6 +64,40 @@ export function CompetitiveFields({
     moves?: [string, string, string, string];
     gen: number;
   }>({ gen: 0 });
+  const [pendingFromPokedex, setPendingFromPokedex] = useState<RecommendedBuild | null>(null);
+
+  // Build vinda do botao "Use This Build" na Pokedex (guardada em
+  // sessionStorage, ver use-this-build-button.tsx) — so oferece aplicar se
+  // for a mesma especie deste slot, e consome (remove) depois de ler.
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(PENDING_BUILD_KEY);
+      if (!raw) return;
+      const build: RecommendedBuild = JSON.parse(raw);
+      sessionStorage.removeItem(PENDING_BUILD_KEY);
+      if (build.speciesName === speciesName) setPendingFromPokedex(build);
+    } catch {
+      // sessionStorage indisponivel/corrompido — ignora, sem quebrar a pagina
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function applyPendingBuild() {
+    if (!pendingFromPokedex) return;
+    const abilityMatch = pendingFromPokedex.abilityName
+      ? abilityOptions.find((o) => o.label.toLowerCase() === pendingFromPokedex.abilityName!.toLowerCase())
+      : undefined;
+    const moves = pendingFromPokedex.moveNames;
+    setApplied((a) => ({
+      ...a,
+      abilityId: abilityMatch?.value,
+      itemName: pendingFromPokedex.itemName ?? undefined,
+      teraType: pendingFromPokedex.teraType ?? undefined,
+      moves: moves.length > 0 ? [moves[0] ?? '', moves[1] ?? '', moves[2] ?? '', moves[3] ?? ''] : undefined,
+      gen: a.gen + 1,
+    }));
+    setPendingFromPokedex(null);
+  }
 
   function applyAbility(row: BuildComponentRow) {
     const match = abilityOptions.find((o) => o.label.toLowerCase() === row.displayName.toLowerCase());
@@ -91,6 +130,23 @@ export function CompetitiveFields({
 
   return (
     <div className="flex flex-col gap-6">
+      {pendingFromPokedex && (
+        <GlassCard padding="md" className="flex flex-wrap items-center justify-between gap-3 border-purple-neon/40 bg-purple-core/10">
+          <span className="flex items-center gap-2 text-sm text-ink-primary">
+            <Wand2 className="h-4 w-4 text-purple-neon" strokeWidth={1.75} />
+            Build sugerida da Pokédex pronta pra aplicar em {pendingFromPokedex.speciesName}.
+          </span>
+          <div className="flex gap-2">
+            <button type="button" onClick={applyPendingBuild} className="rounded-lg bg-purple-core px-3 py-1.5 text-xs font-medium text-ink-primary hover:brightness-110">
+              Aplicar build
+            </button>
+            <button type="button" onClick={() => setPendingFromPokedex(null)} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-ink-muted hover:text-ink-primary">
+              Descartar
+            </button>
+          </div>
+        </GlassCard>
+      )}
+
       {(hasSnapshot || hasComponents) && (
         <GlassCard padding="md" className="border-purple-neon/20">
           {hasSnapshot && (
@@ -173,6 +229,7 @@ export function CompetitiveFields({
             allowEmpty
             placeholder="Escolher tera type..."
             options={teraOptions}
+            renderIcon={(opt) => <TypeBadge type={opt.value} size="sm" />}
           />
         </div>
       </div>

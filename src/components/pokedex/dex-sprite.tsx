@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { Sparkles, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,10 +25,17 @@ export function DexSprite({ name, normalUrl, shinyUrl, size = 96, nationalDex }:
         type="button"
         onClick={() => playCry(nationalDex)}
         title="Tocar cry"
-        className="group relative flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 transition-colors hover:border-purple-neon/40"
+        className="group relative flex items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition-colors hover:border-purple-neon/40"
         style={{ width: size + 24, height: size + 24 }}
       >
-        <Image src={shiny ? shinyUrl : normalUrl} alt={name} width={size} height={size} unoptimized />
+        <Image
+          src={shiny ? shinyUrl : normalUrl}
+          alt={name}
+          width={size}
+          height={size}
+          unoptimized
+          className="transition-transform duration-300 ease-out group-hover:scale-110"
+        />
         {nationalDex && (
           <span className="absolute bottom-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-void/70 text-ink-dim opacity-0 transition-opacity group-hover:opacity-100">
             <Volume2 className="h-3.5 w-3.5" strokeWidth={1.75} />

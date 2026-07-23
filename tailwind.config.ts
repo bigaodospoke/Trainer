@@ -74,6 +74,9 @@ export default {
       animation: {
         'facet-pulse': 'facetPulse 2.4s ease-in-out infinite',
         'facet-spin': 'facetSpin 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite',
+        'fade-in-up': 'fadeInUp 0.28s ease-out both',
+        'pop-in': 'popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both',
+        'theme-morph': 'themeMorph 0.5s cubic-bezier(0.65, 0, 0.35, 1) both',
       },
       keyframes: {
         facetPulse: {
@@ -83,6 +86,20 @@ export default {
         facetSpin: {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' },
+        },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(4px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        popIn: {
+          '0%': { opacity: '0', transform: 'scale(0.85)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        themeMorph: {
+          '0%': { opacity: '1', transform: 'scale(1) rotate(0deg)' },
+          '45%': { opacity: '0', transform: 'scale(0.4) rotate(140deg)' },
+          '55%': { opacity: '0', transform: 'scale(0.4) rotate(160deg)' },
+          '100%': { opacity: '1', transform: 'scale(1) rotate(360deg)' },
         },
       },
     },

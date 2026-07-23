@@ -57,6 +57,7 @@ model User {
   partnerServers         PartnerServer[]
   postLikes              PostLike[]
   postComments           PostComment[]
+  recentViews            RecentView[]
 
   @@index([username])
 }
@@ -998,4 +999,24 @@ model PartnerAnalyticsEvent {
   partner     PartnerServer             @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@index([partnerId, type, createdAt])
+}
+
+enum RecentViewType {
+  POKEMON
+  TEAM
+}
+
+/// "Recently Viewed" do Dashboard — upsert por (userId, targetType,
+/// targetId) atualizando viewedAt a cada visita, entao o mesmo item nunca
+/// duplica na lista, só sobe pro topo de novo.
+model RecentView {
+  id         String         @id @default(cuid())
+  userId     String
+  targetType RecentViewType
+  targetId   String
+  viewedAt   DateTime       @default(now())
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetType, targetId])
+  @@index([userId, targetType, viewedAt])
 }

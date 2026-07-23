@@ -213,6 +213,7 @@ async function SetEditor({
         </div>
 
         <CompetitiveFields
+          speciesName={species.name}
           defaultAbilityId={slot.abilityId ?? ''}
           defaultItemName={slot.item?.name ?? ''}
           defaultTeraType={slot.teraType ?? ''}

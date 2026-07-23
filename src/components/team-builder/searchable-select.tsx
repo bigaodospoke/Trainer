@@ -17,6 +17,10 @@ interface SearchableSelectProps {
   placeholder?: string;
   allowEmpty?: boolean;
   emptyLabel?: string;
+  /** Icone por opcao (ex.: sprite do Tera Type) — mostrado tanto fechado
+   *  quanto em cada linha da lista. Opcional pra nao afetar os outros usos
+   *  (Ability, Nature) que nao tem icone. */
+  renderIcon?: (opt: SearchableSelectOption) => React.ReactNode;
 }
 
 /**
@@ -33,10 +37,12 @@ export function SearchableSelect({
   placeholder = 'Buscar...',
   allowEmpty = false,
   emptyLabel = '— vazio —',
+  renderIcon,
 }: SearchableSelectProps) {
   const initialOption = options.find((o) => o.value === defaultValue);
   const [value, setValue] = useState(defaultValue);
   const [text, setText] = useState(initialOption?.label ?? '');
+  const currentOption = options.find((o) => o.value === value);
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(0);
@@ -79,9 +85,14 @@ export function SearchableSelect({
           setOpen((o) => !o);
           setQuery('');
         }}
-        className="flex h-10 w-full items-center justify-between rounded-xl border border-white/10 bg-void-surface/80 px-3 text-left text-sm text-ink-primary outline-none transition-colors focus:border-purple-neon/50 focus:ring-2 focus:ring-purple-neon/20"
+        className="flex h-10 w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-void-surface/80 px-3 text-left text-sm text-ink-primary outline-none transition-colors focus:border-purple-neon/50 focus:ring-2 focus:ring-purple-neon/20"
       >
-        <span className={cn('truncate', !text && 'text-ink-dim')}>{text || placeholder}</span>
+        <span className="flex min-w-0 flex-1 items-center gap-2">
+          {renderIcon && currentOption && (
+            <span key={value} className="shrink-0 animate-pop-in">{renderIcon(currentOption)}</span>
+          )}
+          <span className={cn('truncate', !text && 'text-ink-dim')}>{text || placeholder}</span>
+        </span>
         <ChevronDown className="h-3.5 w-3.5 shrink-0 text-ink-dim" strokeWidth={1.75} />
       </button>
 
@@ -135,7 +146,10 @@ export function SearchableSelect({
                     i === highlighted ? 'bg-purple-core/15 text-ink-primary' : 'text-ink-muted hover:bg-white/5'
                   )}
                 >
-                  <span className="truncate">{opt.label}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    {renderIcon && <span className="shrink-0">{renderIcon(opt)}</span>}
+                    <span className="truncate">{opt.label}</span>
+                  </span>
                   {opt.hint && <span className="ml-2 shrink-0 text-[10px] text-ink-dim">{opt.hint}</span>}
                 </button>
               </li>

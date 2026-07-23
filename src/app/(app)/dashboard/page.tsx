@@ -10,6 +10,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { respondFriendRequest } from '../profile/[username]/actions';
 import { PartnerSpotlight } from '@/components/partners/partner-spotlight';
+import { getRecentViews } from '@/lib/recent-views/queries';
+import { RecentlyViewed } from '@/components/dashboard/recently-viewed';
 
 const ACTIVITY_LABELS: Record<string, (payload: Record<string, unknown>) => string> = {
   TEAM_PUBLISHED: (p) => `publicou o time "${p.teamName}"`,
@@ -45,6 +47,8 @@ export default async function DashboardPage() {
     }),
     prisma.follow.findMany({ where: { followerId: session!.user.id }, select: { followingId: true } }),
   ]);
+
+  const recentViews = await getRecentViews(session!.user.id);
 
   const followingIds = following.map((f: { followingId: string }) => f.followingId);
   const feed = followingIds.length
@@ -85,6 +89,8 @@ export default async function DashboardPage() {
           </GlassCard>
         ))}
       </div>
+
+      <RecentlyViewed views={recentViews} />
 
       {pendingRequests.length > 0 && (
         <GlassCard padding="lg">

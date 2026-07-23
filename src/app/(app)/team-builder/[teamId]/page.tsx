@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { ValidationBanner } from '@/components/team-builder/validation-banner';
 import { TeamBuilderSlotCard } from '@/components/team-builder/team-builder-slot-card';
 import { TeamVisibilitySelect } from '@/components/team-builder/team-visibility-select';
+import { TeamAnalysisPanel } from '@/components/team-builder/team-analysis-panel';
+import { RecordView } from '@/components/layout/record-view';
 import { computeTeamIssues } from '@/lib/team-builder/validation';
 import { getAllFormats } from '@/lib/team-builder/queries';
 import { buildExportTeamText, type ExportableSlot } from '@/lib/team-builder/showdown-format';
@@ -63,6 +65,8 @@ export default async function TeamEditorPage({ params }: TeamEditorPageProps) {
 
   return (
     <div className="flex flex-col gap-6">
+      <RecordView targetType="TEAM" targetId={team.id} label={team.name} href={`/team-builder/${team.id}`} />
+
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="mb-1 flex items-center gap-2">
@@ -165,6 +169,8 @@ export default async function TeamEditorPage({ params }: TeamEditorPageProps) {
           );
         })}
       </div>
+
+      <TeamAnalysisPanel slots={team.slots} speciesIds={team.slots.map((s: (typeof team.slots)[number]) => s.species.id)} />
 
       <ImportExportPanel teamId={team.id} exportText={exportText} />
     </div>

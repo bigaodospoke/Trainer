@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { THEME_COOKIE, resolveTheme, type ThemeMode } from '@/lib/theme';
+import { LYCANROC_SPRITES } from '@/lib/lycanroc';
 
 interface ThemeContextValue {
   mode: ThemeMode;
@@ -15,6 +16,21 @@ function applyThemeClass(resolved: 'dark' | 'light') {
   const root = document.documentElement;
   root.classList.toggle('light', resolved === 'light');
   root.style.colorScheme = resolved;
+}
+
+/** Favicon dinamico — Lycanroc Midday (claro) / Midnight (escuro), sempre em
+ *  sincronia com o tema resolvido (inclusive quando muda via "seguir
+ *  sistema", nao so no clique do toggle). */
+function applyFavicon(resolved: 'dark' | 'light') {
+  const href = LYCANROC_SPRITES[resolved].icon;
+  let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+  link.type = 'image/png';
+  link.href = href;
 }
 
 function readSystemPrefersDark() {
@@ -45,6 +61,7 @@ export function ThemeProvider({
 
   useEffect(() => {
     applyThemeClass(resolved);
+    applyFavicon(resolved);
   }, [resolved]);
 
   const setMode = useCallback((next: ThemeMode) => {

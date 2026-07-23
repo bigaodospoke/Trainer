@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Sparkles } from 'lucide-react';
 import { FORM_KIND_FILTERS } from '@/lib/pokedex/form-kinds';
+import { useUiSound } from '@/lib/audio/use-ui-sound';
 
 const STORAGE_KEY = 'trainerly-pokedex-form-filters';
 
@@ -21,6 +22,7 @@ export function PokedexFormFilter() {
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const { play } = useUiSound();
 
   const urlForms = searchParams.get('forms');
   const active = urlForms !== null
@@ -48,6 +50,7 @@ export function PokedexFormFilter() {
   }, []);
 
   function toggle(value: string) {
+    play('toggle');
     const next = new Set(active);
     if (next.has(value)) next.delete(value);
     else next.add(value);
@@ -70,7 +73,7 @@ export function PokedexFormFilter() {
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => { play('nav'); setOpen((o) => !o); }}
         className="flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-void-surface/80 px-3.5 text-sm text-ink-primary outline-none transition-colors hover:border-purple-neon/40"
       >
         <Sparkles className="h-3.5 w-3.5 text-purple-neon" strokeWidth={1.75} />
